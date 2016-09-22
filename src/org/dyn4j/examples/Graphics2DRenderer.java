@@ -77,9 +77,9 @@ public final class Graphics2DRenderer {
             Graphics2DRenderer.render(g, (Slice)shape, scale, color);
         } else if (shape instanceof HalfEllipse) {
             Graphics2DRenderer.render(g, (HalfEllipse)shape, scale, color);
-        } else {
+        } //else {
             // unknown shape
-        }
+        //}
     }
 
     /**
