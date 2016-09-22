@@ -56,7 +56,7 @@ public final class Graphics2DRenderer {
      * @param scale the scale to render the shape (pixels per dyn4j unit (typically meter))
      * @param color the color
      */
-    public static final void render(Graphics2D g, Shape shape, double scale, Color color) {
+    public static void render(Graphics2D g, Shape shape, double scale, Color color) {
         // no-op
         if (shape == null) return;
 
