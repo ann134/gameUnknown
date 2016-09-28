@@ -31,13 +31,26 @@ public class Main {
         this.world.addBody(floor);*/
 
 
-        Circle cirShape = new Circle(0.5);
+        /*Circle cirShape = new Circle(0.5);
         circle = new Body();
         circle.addFixture(cirShape);
         circle.setMass(MassType.NORMAL);
         circle.applyForce(new Vector2(-100.0, 0.0));
         circle.setLinearDamping(0.05);
 
+        this.world.addBody(circle);*/
+
+
+        // create a circle
+        Circle cirShape = new Circle(0.5);
+        circle = new Body();
+        circle.addFixture(cirShape);
+        circle.setMass(MassType.NORMAL);
+        circle.translate(2.0, 2.0);
+        // test adding some force
+        circle.applyForce(new Vector2(-100.0, 0.0));
+        // set some linear damping to simulate rolling friction
+        circle.setLinearDamping(0.05);
         this.world.addBody(circle);
 
     }
@@ -58,16 +71,6 @@ public class Main {
 
     private void gameLoop() {
 
-        long time = System.nanoTime();
-        long diff = time - last;
-
-        last = time;
-        double elapsedTime = diff / NANO_TO_BASE;
-
-
-
-        System.out.println("elapsed: " + elapsedTime);
-
 //        for (BodyFixture b: circle.getFixtures()) {
 //            System.out.println(b);
 //        }
@@ -77,10 +80,20 @@ public class Main {
 
 
         System.out.println(circle.getFixture(0));
-        System.out.println(circle);
+        System.out.println(circle.getChangeInOrientation());
+        System.out.println(circle.getChangeInPosition());
 
 
 
+
+
+
+
+        long time = System.nanoTime();
+        long diff = time - last;
+
+        last = time;
+        double elapsedTime = diff / NANO_TO_BASE;
 
         world.update(elapsedTime);
     }
