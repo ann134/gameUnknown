@@ -419,19 +419,6 @@ public class ExampleGraphics2D extends JFrame {
      * @param args command line arguments
      */
     public static void main(String[] args) {
-        // set the look and feel to the system look and feel
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        }
-
         // create the example JFrame
         ExampleGraphics2D window = new ExampleGraphics2D();
 
