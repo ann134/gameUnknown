@@ -14,6 +14,7 @@ public class Main {
     private World world;
     private long last;
 
+    private Body floor;
     private Body circle;
 
     public Main(){
@@ -39,6 +40,14 @@ public class Main {
         circle.setLinearDamping(0.05);
 
         this.world.addBody(circle);*/
+
+
+        Rectangle foorShape = new Rectangle(1500, 300);
+        floor = new Body();
+        floor.addFixture(foorShape);
+        floor.setMass(MassType.INFINITE);
+        floor.translate(0.0, -700);
+        this.world.addBody(floor);
 
 
         // create a circle
@@ -82,6 +91,15 @@ public class Main {
         System.out.println(circle.getFixture(0));
         System.out.println(circle.getChangeInOrientation());
         System.out.println(circle.getChangeInPosition());
+        System.out.println(circle.isStatic());
+        System.out.println();
+        System.out.println(circle.getTransform().getTranslation().x * -SCALE);
+        System.out.println(circle.getTransform().getTranslation().getXComponent());
+        System.out.println();
+        System.out.println(circle.getTransform().getTranslation().y);
+        System.out.println(circle.getTransform().getTranslation().getYComponent());
+        System.out.println();
+        System.out.println(floor);
 
 
 

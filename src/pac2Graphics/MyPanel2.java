@@ -1,10 +1,12 @@
 package pac2Graphics;
 
 
+import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.examples.GameObject;
 import org.dyn4j.geometry.*;
+import org.dyn4j.geometry.Rectangle;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -21,10 +23,19 @@ public class MyPanel2 extends JPanel{
     public static final double SCALE = 45.0;
     public static final double NANO_TO_BASE = 1.0e9;
 
-    public World world;
-    public boolean stopped;
-    public long last;
+    private World world;
+    private long last;
 
+    private Body floor;
+    private Body circle;
+
+
+    public MyPanel2() throws IOException {
+        smile = ImageIO.read(new File("smile.png"));
+
+        this.initializeWorld();
+        start();
+    }
 
     @Override
     protected void paintComponent(Graphics g){
@@ -36,34 +47,20 @@ public class MyPanel2 extends JPanel{
                 RenderingHints.VALUE_ANTIALIAS_ON
         );
 
-        drawImage(g2d);
-        drawFigure(g2d);
-        drawAxes(g2d);
-        drawFloor(g2d);
 
+        render(g2d);
 
-        start();
     }
-
-
-    public MyPanel2() throws IOException {
-        smile = ImageIO.read(new File("smile.png"));
-
-        this.initializeWorld();
-    }
-
 
     protected void initializeWorld() {
         this.world = new World();
 
-
-        org.dyn4j.geometry.Rectangle floorRect = new org.dyn4j.geometry.Rectangle(13, 3);
+        /*org.dyn4j.geometry.Rectangle floorRect = new org.dyn4j.geometry.Rectangle(13, 3);
         GameObject floor = new GameObject();
         floor.addFixture(new BodyFixture(floorRect));
         floor.setMass(MassType.INFINITE);
 
         this.world.addBody(floor);
-
 
         Circle cirShape = new Circle(0.5);
         GameObject circle = new GameObject();
@@ -73,56 +70,104 @@ public class MyPanel2 extends JPanel{
         circle.applyForce(new Vector2(-100.0, 0.0));
         circle.setLinearDamping(0.05);
         this.world.addBody(circle);
-        System.out.println("complitely initialized");
+        System.out.println("complitely initialized");*/
+
+
+        Rectangle foorShape = new Rectangle(1500, 300);
+        floor = new Body();
+        floor.addFixture(foorShape);
+        floor.setMass(MassType.INFINITE);
+        floor.translate(0.0, -700);
+        this.world.addBody(floor);
+
+
+        // create a circle
+        Circle cirShape = new Circle(0.5);
+        circle = new Body();
+        circle.addFixture(cirShape);
+        circle.setMass(MassType.NORMAL);
+        circle.translate(2.0, 2.0);
+        // test adding some force
+        circle.applyForce(new Vector2(-100.0, 0.0));
+        // set some linear damping to simulate rolling friction
+        circle.setLinearDamping(0.05);
+        this.world.addBody(circle);
+
     }
-
-
-
-    public synchronized void stop() {
-        this.stopped = true;
-    }
-    public synchronized boolean isStopped() {
-        return this.stopped;
-    }
-
-
 
     public void start() {
         this.last = System.nanoTime();
 
         Thread thread = new Thread() {
             public void run() {
-                while (!isStopped()) {
+                while (true) {
                     gameLoop();
                 }
             }
         };
         thread.start();
-
-        System.out.println("looop started");
     }
 
-    protected void gameLoop() {
+    private void gameLoop() {
+
+        repaint();
 
 
         long time = System.nanoTime();
         long diff = time - this.last;
+
         this.last = time;
         double elapsedTime = diff / NANO_TO_BASE;
-        this.world.update(elapsedTime);
 
-        System.out.println(elapsedTime);
+        this.world.update(elapsedTime);
     }
 
 
     public void render(Graphics2D g){
         AffineTransform transform = g.getTransform();
 
+        int x = (int) circle.getTransform().getTranslation().x * (int) -SCALE;
+        int y = (int) circle.getTransform().getTranslation().y * (int) -SCALE;
+
+
+        g.drawImage(smile, x, y, null);
 
 
 
 
         g.setTransform(transform);
+
+
+        int x2 = (int) floor.getTransform().getTranslation().x * (int) -SCALE;
+        int y2 = (int) floor.getTransform().getTranslation().y * (int) -SCALE;
+        /*int w = floor.;
+        int h = ;*/
+
+
+        g.setColor(new Color(0, 0, 0));
+        g.fillRect(x2, y2, 1500, 300);
+
+
+
+
+
+
+
+       /* AffineTransform transform2 = g.getTransform();
+
+        int x2 = (int) floor.getTransform().getTranslation().x * (int) -SCALE;
+        int y2 = (int) floor.getTransform().getTranslation().y * (int) -SCALE;
+        *//*int w = floor.getFixture(0).getShape().get;
+        int h = *//*
+
+
+        g.setColor(new Color(0, 0, 0));
+        g.fillRect(x2, y2, 200, 3);
+
+
+        g.setTransform(transform2);*/
+
+
     }
 
 //___________________________________________________________________________________________________________
