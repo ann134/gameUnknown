@@ -1,4 +1,4 @@
-package pac2;
+package pac2Graphics;
 
 
 import org.dyn4j.dynamics.BodyFixture;
@@ -9,13 +9,12 @@ import org.dyn4j.geometry.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-public class MyPanel extends JPanel{
+public class MyPanel2 extends JPanel{
     public BufferedImage smile;
 
 
@@ -47,7 +46,7 @@ public class MyPanel extends JPanel{
     }
 
 
-    public MyPanel() throws IOException {
+    public MyPanel2() throws IOException {
         smile = ImageIO.read(new File("smile.png"));
 
         this.initializeWorld();

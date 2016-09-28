@@ -1,6 +1,4 @@
-package pac2;
-
-import org.dyn4j.dynamics.World;
+package pac1Text;
 
 import javax.swing.*;
 import java.awt.*;

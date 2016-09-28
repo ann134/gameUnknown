@@ -1,13 +1,13 @@
-package pac1;
+package pac2Graphics;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 
 
-public class MyFrame extends JFrame {
+public class MyFrame2 extends JFrame {
 
-    public MyFrame() throws IOException {
+    public MyFrame2() throws IOException {
         super("My Frame");
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -15,7 +15,7 @@ public class MyFrame extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         GridLayout l = new GridLayout(1, 1);
         setLayout(l);
-        JPanel p = new MyPanel();
+        JPanel p = new MyPanel2();
         p.setBackground(new Color(255, 241, 198));
         add(p);
     }

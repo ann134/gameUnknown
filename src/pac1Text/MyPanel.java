@@ -1,4 +1,4 @@
-package pac1;
+package pac1Text;
 
 
 import javax.imageio.ImageIO;
