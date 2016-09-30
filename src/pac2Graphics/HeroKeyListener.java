@@ -21,6 +21,8 @@ public class HeroKeyListener implements KeyListener {
 
     private boolean stopGo = false;
     private boolean stopGoBack = false;
+    private boolean stopJump = false;
+    double y = 0;
 
     private int key;
 
@@ -32,24 +34,33 @@ public class HeroKeyListener implements KeyListener {
         if (key == 39){
             go = true;
             goBack = false;
+
+            stopGo = false;
+            stopGoBack = false;
         }
 
         //идем назад
         if (key == 37){
             goBack = true;
             go = false;
+
+            stopGoBack = false;
+            stopGo = false;
         }
 
         // прыжок
         if (key == 32){
             jump = true;
+
+            stopJump = false;
         }
 
-        p.setDebug(String.format("go = %b, back = %b, jump = %b, stopGo = %b, stopBack = %b", go, goBack, jump, stopGo, stopGoBack));
+        showButtonsDebug();
     }
 
-    public void keyTyped(KeyEvent e) {
 
+
+    public void keyTyped(KeyEvent e) {
     }
 
     public void keyReleased(KeyEvent e) {
@@ -57,17 +68,32 @@ public class HeroKeyListener implements KeyListener {
 
         //больше не идем вперед
         if (key == 39){
-            go = false;
             stopGo = true;
+
+            go = false;
         }
 
         //больше не идем назад
         if (key == 37){
-            goBack = false;
             stopGoBack = true;
+
+            goBack = false;
         }
+
+        //больше не прыгаем
+        if (key == 32){
+            stopJump = true;
+
+            jump = false;
+        }
+
+        showButtonsDebug();
     }
 
+    private void showButtonsDebug() {
+        y = p.getHero().getLinearVelocity().y;
+        p.setDebug(String.format("go = %b, back = %b, jump = %b, stopGo = %b, stopBack = %b ", go, goBack, jump, stopGo, stopGoBack) + y);
+    }
 
     //getters
     public boolean getGo() {
@@ -91,27 +117,36 @@ public class HeroKeyListener implements KeyListener {
         return stopGoBack;
     }
 
+    /*public boolean getStopJump() {
+        return stopJump;
+    }*/
+
+
 
     //setters
-    public void setGo(boolean newGo){
+    /*public void setGo(boolean newGo){
         go = newGo;
+        showButtonsDebug();
     }
 
     public void setGoBack(boolean newGoBack){
         goBack = newGoBack;
+        showButtonsDebug();
     }
 
     public void setJump(boolean newJump){
         jump = newJump;
+        showButtonsDebug();
     }
-
 
     public void setStopGo(boolean newStopGo){
         stopGo = newStopGo;
+        showButtonsDebug();
     }
 
     public void setStopGoBack(boolean newStopGoBack){
         stopGoBack = newStopGoBack;
-    }
+        showButtonsDebug();
+    }*/
 
 }

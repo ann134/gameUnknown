@@ -20,9 +20,13 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
+import static java.awt.Frame.MAXIMIZED_BOTH;
+import static java.awt.Frame.MAXIMIZED_HORIZ;
+
 public class MyPanel2 extends JPanel {
     private BufferedImage smile;
     private BufferedImage wirt;
+    private BufferedImage background;
 
     public static final double SCALE = 45.0;
     public static final double NANO_TO_BASE = 1.0e9;
@@ -40,6 +44,7 @@ public class MyPanel2 extends JPanel {
     public MyPanel2() throws IOException {
         smile = ImageIO.read(new File("smile.png"));
         wirt = ImageIO.read(new File("wirt.png"));
+        background = ImageIO.read(new File("background.jpg"));
 
         this.initializeWorld();
     }
@@ -61,18 +66,18 @@ public class MyPanel2 extends JPanel {
         this.world = new World();
 
         List<Link> links = Geometry.createLinks(new Vector2[] {
-                new Vector2(-6.0,  0.5),
-                new Vector2( 0.0,  0.0),
-                new Vector2( 2.0,  0.0),
-                new Vector2( 4.0,  0.2),
-                new Vector2( 4.5,  0.3),
-                new Vector2( 6.0, -0.5)
+                new Vector2(8.0,  -2),
+                new Vector2( 0,  -1),
+                new Vector2( -4.0,  0.0),
+                new Vector2( -4.0,  0.2),
+                new Vector2( -9,  2),
+                new Vector2( -10.0, 2)
         }, false);
         newFloor = new Body();
         for (Link link : links) {
             newFloor.addFixture(link);
         }
-        newFloor.translate(-15, -15);
+        newFloor.translate(-26, -18);
         newFloor.setMass(MassType.INFINITE);
         this.world.addBody(newFloor);
 
@@ -95,7 +100,7 @@ public class MyPanel2 extends JPanel {
         Rectangle heroShape = new Rectangle(1, 2);
         hero = new Body();
         //hero.addFixture(heroShape, плотность, трение, ??прыгучесть);
-        hero.addFixture(heroShape, BodyFixture.DEFAULT_DENSITY, BodyFixture.DEFAULT_FRICTION, BodyFixture.DEFAULT_RESTITUTION);
+        hero.addFixture(heroShape, BodyFixture.DEFAULT_DENSITY, 10, BodyFixture.DEFAULT_RESTITUTION);
         //hero.applyImpulse(new Vector2(100, 100));
         hero.setMass(MassType.FIXED_ANGULAR_VELOCITY);
         hero.translate(-2, -10);
@@ -123,48 +128,48 @@ public class MyPanel2 extends JPanel {
 
         //идем вперед
         if (heroKeyListener.getGo()) {
-            if (-3 < linearVelocity.x && linearVelocity.x < 3){
+            if (-3 < linearVelocity.x){
                 if (linearVelocity.x == 0)
                     hero.applyImpulse(new Vector2(-3, 0));
                 hero.applyImpulse(new Vector2(-2, 0));
             }
-
-            heroKeyListener.setGo(false);
         }
 
         //идем назад
         if (heroKeyListener.getGoBack()) {
-            if (-3 < linearVelocity.x && linearVelocity.x < 3){
+            if (linearVelocity.x < 3){
                 if (linearVelocity.x == 0)
                     hero.applyImpulse(new Vector2(3, 0));
                 hero.applyImpulse(new Vector2(2, 0));
             }
-
-            heroKeyListener.setGoBack(false);
         }
 
         //прыжок
         if (heroKeyListener.getJump()) {
-            if (hero.isInContact(floor)){
-                hero.applyImpulse(new Vector2(0, 15));
-            }
-
-            heroKeyListener.setJump(false);
+            if (linearVelocity.y < 2)
+                if (hero.isInContact(floor) || hero.isInContact(newFloor)){
+                    hero.applyImpulse(new Vector2(0, 15));
+                }
         }
+
 
         //тормозим когда идем вперед
         if (heroKeyListener.getStopGo()) {
-            hero.setLinearVelocity(0, linearVelocity.y);
-
-            heroKeyListener.setStopGo(false);
+            if (linearVelocity.x < 0)
+                hero.setLinearVelocity(0, linearVelocity.y);
         }
 
         //тормозим когда идем назад
         if (heroKeyListener.getStopGoBack()) {
-            hero.setLinearVelocity(0, linearVelocity.y);
-
-            heroKeyListener.setStopGoBack(false);
+            if (0 < linearVelocity.x)
+                hero.setLinearVelocity(0, linearVelocity.y);
         }
+
+        /*тормозим прыжок
+        if (heroKeyListener.getStopJump()) {
+            //hero.setLinearVelocity(linearVelocity.x, 0);
+            //heroKeyListener.setJump(false);
+        }*/
 
         repaint();
 
@@ -181,21 +186,18 @@ public class MyPanel2 extends JPanel {
 
 
     public void render(Graphics2D g) {
+        g.drawImage(background, 0, 0, this);
+
+
 
         //рисуем круг
-        AffineTransform ot = g.getTransform();
+        AffineTransform saveTransform = g.getTransform();
 
         g.translate(circle.getTransform().getTranslationX() * -SCALE, circle.getTransform().getTranslationY() * -SCALE);
         g.rotate(circle.getTransform().getRotation());
 
         double r = circle.getFixture(0).getShape().getRadius();
         g.setColor(new Color(0, 0, 0));
-        g.fillOval(
-                (int) (-r * SCALE),
-                (int) (-r * SCALE),
-                (int) (r * 2 * SCALE),
-                (int) (r * 2 * SCALE)
-        );
         g.drawImage(
                 smile,
                 (int) (-r * SCALE),
@@ -205,12 +207,12 @@ public class MyPanel2 extends JPanel {
                 null
         );
 
-        g.setTransform(ot);
+        g.setTransform(saveTransform);
 
 
 
         //рисуем пол
-        ot = g.getTransform();
+        saveTransform = g.getTransform();
 
         g.translate(floor.getTransform().getTranslationX() * -SCALE, floor.getTransform().getTranslationY() * -SCALE);
         g.rotate(floor.getTransform().getRotation());
@@ -224,12 +226,12 @@ public class MyPanel2 extends JPanel {
                 (int) (w * SCALE),
                 (int) (h * SCALE)
         );
-        g.setTransform(ot);
+        g.setTransform(saveTransform);
 
 
 
         //рисуем героя
-        ot = g.getTransform();
+        saveTransform = g.getTransform();
 
         g.translate(hero.getTransform().getTranslationX() * -SCALE, hero.getTransform().getTranslationY() * -SCALE);
         g.rotate(hero.getTransform().getRotation());
@@ -237,11 +239,6 @@ public class MyPanel2 extends JPanel {
         double hh = ((Rectangle) hero.getFixture(0).getShape()).getHeight();
         double wh = ((Rectangle) hero.getFixture(0).getShape()).getWidth();
         g.setColor(new Color(0, 255, 0));
-        /*g.fillRect(
-                (int) (-wh/2 * SCALE),
-                (int) (-hh/2 * SCALE),
-                (int) (wh * SCALE),
-                (int) (hh * SCALE));*/
         g.drawImage(
                 wirt,
                 (int) (-wh/2 * SCALE),
@@ -250,15 +247,14 @@ public class MyPanel2 extends JPanel {
                 (int) (hh * SCALE),
                 null
         );
-        g.setTransform(ot);
+        g.setTransform(saveTransform);
 
 
         //рисуем новый пол
-        ot = g.getTransform();
+        saveTransform = g.getTransform();
 
         g.translate(newFloor.getTransform().getTranslationX() * -SCALE, newFloor.getTransform().getTranslationY() * -SCALE);
         g.rotate(newFloor.getTransform().getRotation());
-
 
         List<BodyFixture> links = newFloor.getFixtures();
         for (BodyFixture b : links) {
@@ -275,28 +271,13 @@ public class MyPanel2 extends JPanel {
                 );
             }
         }
+        g.setTransform(saveTransform);
 
-        //g.drawLine(x1, y1, x2, y2);
-
-        /*g.translate(floor.getTransform().getTranslationX() * -SCALE, floor.getTransform().getTranslationY() * -SCALE);
-        g.rotate(floor.getTransform().getRotation());
-
-        double h = ((Rectangle) floor.getFixture(0).getShape()).getHeight();
-        double w = ((Rectangle) floor.getFixture(0).getShape()).getWidth();
-        g.setColor(new Color(0, 0, 0));
-        g.fillRect(
-                (int) (-w/2 * SCALE),
-                (int) (-h/2 * SCALE),
-                (int) (w * SCALE),
-                (int) (h * SCALE)
-        );*/
-
-        g.setTransform(ot);
 
 
         //show debug
         g.setFont(new Font("Arial", 0, 16));
-        g.setColor(Color.BLACK);
+        //g.setColor(Color.BLACK);
         g.drawString(debug, 30, 30);
 
     }
