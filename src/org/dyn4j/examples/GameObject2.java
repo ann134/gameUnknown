@@ -8,11 +8,11 @@ import org.dyn4j.geometry.Convex;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-public class GameObject extends Body {
+public class GameObject2 extends Body {
 
     protected Color color;
 
-    public GameObject() {
+    public GameObject2() {
         this.color = new Color(
                 (float)Math.random() * 0.5f + 0.5f,
                 (float)Math.random() * 0.5f + 0.5f,

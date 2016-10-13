@@ -62,7 +62,7 @@ public class TryDemo extends JFrame {
         this.world = new World();
 
         Rectangle floorRect = new Rectangle(13.0, 3.0);
-        GameObject floor = new GameObject();
+        GameObject2 floor = new GameObject2();
         floor.addFixture(new BodyFixture(floorRect));
         floor.setMass(MassType.INFINITE);
 
@@ -75,7 +75,7 @@ public class TryDemo extends JFrame {
                 new Vector2(0.0, 0.5),
                 new Vector2(-0.5, -0.5),
                 new Vector2(0.5, -0.5));
-        GameObject triangle = new GameObject();
+        GameObject2 triangle = new GameObject2();
         triangle.addFixture(triShape);
         triangle.setMass(MassType.NORMAL);
         triangle.translate(-1.0, 2.0);
@@ -84,7 +84,7 @@ public class TryDemo extends JFrame {
 
 
         Circle cirShape = new Circle(0.5);
-        GameObject circle = new GameObject();
+        GameObject2 circle = new GameObject2();
         circle.addFixture(cirShape);
         circle.setMass(MassType.NORMAL);
         circle.translate(2.0, 2.0);
@@ -95,7 +95,7 @@ public class TryDemo extends JFrame {
 
 
         Rectangle rectShape = new Rectangle(1.0, 1.0);
-        GameObject rectangle = new GameObject();
+        GameObject2 rectangle = new GameObject2();
         rectangle.addFixture(rectShape);
         rectangle.setMass(MassType.NORMAL);
         rectangle.translate(0.0, 2.0);
@@ -104,7 +104,7 @@ public class TryDemo extends JFrame {
 
 
         Polygon polyShape = Geometry.createUnitCirclePolygon(10, 1.0);
-        GameObject polygon = new GameObject();
+        GameObject2 polygon = new GameObject2();
         polygon.addFixture(polyShape);
         polygon.setMass(MassType.NORMAL);
         polygon.translate(-2.5, 2.0);
@@ -122,7 +122,7 @@ public class TryDemo extends JFrame {
 
         c1.translate(-1.0, 0.0);
         c2.translate(1.0, 0.0);
-        GameObject capsule = new GameObject();
+        GameObject2 capsule = new GameObject2();
         capsule.addFixture(c1Fixture);
         capsule.addFixture(c2Fixture);
         capsule.addFixture(rm);
@@ -130,31 +130,31 @@ public class TryDemo extends JFrame {
         capsule.translate(0.0, 4.0);
         this.world.addBody(capsule);
 
-        GameObject issTri = new GameObject();
+        GameObject2 issTri = new GameObject2();
         issTri.addFixture(Geometry.createIsoscelesTriangle(1.0, 3.0));
         issTri.setMass(MassType.NORMAL);
         issTri.translate(2.0, 3.0);
         this.world.addBody(issTri);
 
-        GameObject equTri = new GameObject();
+        GameObject2 equTri = new GameObject2();
         equTri.addFixture(Geometry.createEquilateralTriangle(2.0));
         equTri.setMass(MassType.NORMAL);
         equTri.translate(3.0, 3.0);
         this.world.addBody(equTri);
 
-        GameObject rightTri = new GameObject();
+        GameObject2 rightTri = new GameObject2();
         rightTri.addFixture(Geometry.createRightTriangle(2.0, 1.0));
         rightTri.setMass(MassType.NORMAL);
         rightTri.translate(4.0, 3.0);
         this.world.addBody(rightTri);
 
-        GameObject cap = new GameObject();
+        GameObject2 cap = new GameObject2();
         cap.addFixture(new Capsule(1.0, 0.5));
         cap.setMass(MassType.NORMAL);
         cap.translate(-3.0, 3.0);
         this.world.addBody(cap);
 
-        GameObject slice = new GameObject();
+        GameObject2 slice = new GameObject2();
         slice.addFixture(new Slice(0.5, Math.toRadians(120)));
         slice.setMass(MassType.NORMAL);
         slice.translate(-3.0, 3.0);
@@ -217,7 +217,7 @@ public class TryDemo extends JFrame {
         g.translate(0.0, -1.0 * SCALE);
 
         for (int i = 0; i < this.world.getBodyCount(); i++) {
-            GameObject go = (GameObject) this.world.getBody(i);
+            GameObject2 go = (GameObject2) this.world.getBody(i);
             go.render(g);
         }
     }
