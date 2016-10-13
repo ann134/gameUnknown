@@ -27,6 +27,7 @@ public class MyPanel2 extends JPanel {
     private BufferedImage smile;
     private BufferedImage wirt;
     private BufferedImage background;
+    private BufferedImage floorImage;
 
     public static final double SCALE = 45.0;
     public static final double NANO_TO_BASE = 1.0e9;
@@ -45,6 +46,7 @@ public class MyPanel2 extends JPanel {
         smile = ImageIO.read(new File("smile.png"));
         wirt = ImageIO.read(new File("wirt.png"));
         background = ImageIO.read(new File("background.jpg"));
+        floorImage = ImageIO.read(new File("backgroundFloor.png"));
 
         this.initializeWorld();
     }
@@ -65,45 +67,78 @@ public class MyPanel2 extends JPanel {
     protected void initializeWorld() {
         this.world = new World();
 
-        List<Link> links = Geometry.createLinks(new Vector2[] {
-                new Vector2(8.0,  -2),
-                new Vector2( 0,  -1),
-                new Vector2( -4.0,  0.0),
-                new Vector2( -4.0,  0.2),
-                new Vector2( -9,  2),
-                new Vector2( -10.0, 2)
-        }, false);
+        // новый пол
+        ArrayList<PixelCoords> floorPoints = new ArrayList<>();
+        //перебираем пиксели
+        for (int x = 1; x < floorImage.getWidth(); x++) {
+            for (int y = 1; y < floorImage.getHeight(); y++) {
+                int white = 0xFFFFFFFF;
+                int black = 0xFF000000;
+                int color = floorImage.getRGB(x, y);
+                if (color != white) {
+                    boolean exist = false;
+                    //переюираем floorPoints, fp, у нее координаты fp.x, fp.y.  Math.abs(x - fp.x) + Math.abs(y - fp.y) <= 9 значит, уже знаем эту точку, пропускаем
+                    for (PixelCoords point : floorPoints) {
+                        if (Math.abs(x - point.x) + Math.abs(y - point.y) <= 20) {
+                            exist = true;
+                        }
+                    }
+                    //добавляем если не существует
+                    if (!exist)
+                        floorPoints.add(new PixelCoords(x + 2, y + 6));
+                }
+            }
+        }
+        /*List<Link> links = Geometry.createLinks(new Vector2[] {
+                new Vector2(-8.0,  -2),
+                new Vector2( -0,  -1),
+                new Vector2( 4.0,  0.0),
+                new Vector2( 4.0,  0.2),
+                new Vector2( 9,  2),
+                new Vector2( 10.0, 2)
+        }, false);*/
+        List<Vector2> floorPointsInWorld = new ArrayList<>();
+        for (PixelCoords floorPoint : floorPoints)
+            floorPointsInWorld.add(new Vector2(floorPoint.x / SCALE, floorPoint.y / -SCALE));
+        List<Link> links = Geometry.createLinks(floorPointsInWorld, false);
+
         newFloor = new Body();
         for (Link link : links) {
             newFloor.addFixture(link);
         }
-        newFloor.translate(-26, -18);
+        newFloor.translate(0, 0);
         newFloor.setMass(MassType.INFINITE);
         this.world.addBody(newFloor);
 
-        Rectangle foorShape = new Rectangle(40, 3);
+
+        //старый пол
+        /*Rectangle foorShape = new Rectangle(40, 3);
         floor = new Body();
         floor.addFixture(foorShape);
         floor.setMass(MassType.INFINITE);
-        floor.translate(-15, -22);
-        this.world.addBody(floor);
+        floor.translate(15, -22);
+        this.world.addBody(floor);*/
 
+
+        //круг
         Circle cirShape = new Circle(0.5);
         circle = new Body();
         circle.addFixture(cirShape);
         circle.setMass(MassType.NORMAL);
-        circle.translate(-10, -1);
-        circle.applyForce(new Vector2(-100.0, 0.0));
+        circle.translate(10, -1);
+        circle.applyForce(new Vector2(100.0, 0.0));
         circle.setLinearDamping(0.05);
         this.world.addBody(circle);
 
+
+        //герой
         Rectangle heroShape = new Rectangle(1, 2);
         hero = new Body();
         //hero.addFixture(heroShape, плотность, трение, ??прыгучесть);
         hero.addFixture(heroShape, BodyFixture.DEFAULT_DENSITY, 10, BodyFixture.DEFAULT_RESTITUTION);
         //hero.applyImpulse(new Vector2(100, 100));
         hero.setMass(MassType.FIXED_ANGULAR_VELOCITY);
-        hero.translate(-2, -10);
+        hero.translate(2, -10);
         world.addBody(hero);
 
     }
@@ -126,28 +161,40 @@ public class MyPanel2 extends JPanel {
         Vector2 linearVelocity = hero.getLinearVelocity();
         HeroKeyListener heroKeyListener = MyFrame2.getHeroKeyListener();
 
-        //идем вперед
+        //идем вперед обратно
         if (heroKeyListener.getGo()) {
-            if (-3 < linearVelocity.x){
+            /*if (-3 < linearVelocity.x) {
                 if (linearVelocity.x == 0)
                     hero.applyImpulse(new Vector2(-3, 0));
                 hero.applyImpulse(new Vector2(-2, 0));
-            }
-        }
+            }*/
 
-        //идем назад
-        if (heroKeyListener.getGoBack()) {
-            if (linearVelocity.x < 3){
+            if (linearVelocity.x < 3) {
                 if (linearVelocity.x == 0)
                     hero.applyImpulse(new Vector2(3, 0));
                 hero.applyImpulse(new Vector2(2, 0));
             }
         }
 
+        //идем назад обратно
+        if (heroKeyListener.getGoBack()) {
+            /*if (linearVelocity.x < 3) {
+                if (linearVelocity.x == 0)
+                    hero.applyImpulse(new Vector2(3, 0));
+                hero.applyImpulse(new Vector2(2, 0));
+            }*/
+
+            if (-3 < linearVelocity.x) {
+                if (linearVelocity.x == 0)
+                    hero.applyImpulse(new Vector2(-3, 0));
+                hero.applyImpulse(new Vector2(-2, 0));
+            }
+        }
+
         //прыжок
         if (heroKeyListener.getJump()) {
             if (linearVelocity.y < 2)
-                if (hero.isInContact(floor) || hero.isInContact(newFloor)){
+                if (hero.isInContact(floor) || hero.isInContact(newFloor)) {
                     hero.applyImpulse(new Vector2(0, 15));
                 }
         }
@@ -182,19 +229,14 @@ public class MyPanel2 extends JPanel {
         this.world.update(elapsedTime);
     }
 
-
-
-
     public void render(Graphics2D g) {
         g.drawImage(background, 0, 0, this);
-
-
 
         //рисуем круг
         AffineTransform saveTransform = g.getTransform();
 
-        g.translate(circle.getTransform().getTranslationX() * -SCALE, circle.getTransform().getTranslationY() * -SCALE);
-        g.rotate(circle.getTransform().getRotation());
+        g.translate(circle.getTransform().getTranslationX() * SCALE, circle.getTransform().getTranslationY() * -SCALE);
+        g.rotate(-circle.getTransform().getRotation());
 
         double r = circle.getFixture(0).getShape().getRadius();
         g.setColor(new Color(0, 0, 0));
@@ -209,13 +251,11 @@ public class MyPanel2 extends JPanel {
 
         g.setTransform(saveTransform);
 
-
-
         //рисуем пол
-        saveTransform = g.getTransform();
+       /* saveTransform = g.getTransform();
 
-        g.translate(floor.getTransform().getTranslationX() * -SCALE, floor.getTransform().getTranslationY() * -SCALE);
-        g.rotate(floor.getTransform().getRotation());
+        g.translate(floor.getTransform().getTranslationX() * SCALE, floor.getTransform().getTranslationY() * -SCALE);
+        g.rotate(-floor.getTransform().getRotation());
 
         double h = ((Rectangle) floor.getFixture(0).getShape()).getHeight();
         double w = ((Rectangle) floor.getFixture(0).getShape()).getWidth();
@@ -226,23 +266,22 @@ public class MyPanel2 extends JPanel {
                 (int) (w * SCALE),
                 (int) (h * SCALE)
         );
-        g.setTransform(saveTransform);
-
+        g.setTransform(saveTransform);*/
 
 
         //рисуем героя
         saveTransform = g.getTransform();
 
-        g.translate(hero.getTransform().getTranslationX() * -SCALE, hero.getTransform().getTranslationY() * -SCALE);
-        g.rotate(hero.getTransform().getRotation());
+        g.translate(hero.getTransform().getTranslationX() * SCALE, hero.getTransform().getTranslationY() * -SCALE);
+        g.rotate(-hero.getTransform().getRotation());
 
         double hh = ((Rectangle) hero.getFixture(0).getShape()).getHeight();
         double wh = ((Rectangle) hero.getFixture(0).getShape()).getWidth();
         g.setColor(new Color(0, 255, 0));
         g.drawImage(
                 wirt,
-                (int) (-wh/2 * SCALE),
-                (int) (-hh/2 * SCALE),
+                (int) (-wh / 2 * SCALE),
+                (int) (-hh / 2 * SCALE),
                 (int) (wh * SCALE),
                 (int) (hh * SCALE),
                 null
@@ -253,33 +292,30 @@ public class MyPanel2 extends JPanel {
         //рисуем новый пол
         saveTransform = g.getTransform();
 
-        g.translate(newFloor.getTransform().getTranslationX() * -SCALE, newFloor.getTransform().getTranslationY() * -SCALE);
-        g.rotate(newFloor.getTransform().getRotation());
+        g.translate(newFloor.getTransform().getTranslationX() * SCALE, newFloor.getTransform().getTranslationY() * -SCALE);
+        g.rotate(-newFloor.getTransform().getRotation());
 
         List<BodyFixture> links = newFloor.getFixtures();
         for (BodyFixture b : links) {
-            Link l =  (Link) b.getShape();
+            Link l = (Link) b.getShape();
             Vector2[] vertices = l.getVertices();
 
             for (int i = 0; i < vertices.length - 1; i++) {
-                g.setColor(new Color(0, 0, 0));
+                g.setColor(new Color(29, 17, 12));
                 g.drawLine(
-                        (int) (vertices[i].x * -SCALE),
+                        (int) (vertices[i].x * SCALE),
                         (int) (vertices[i].y * -SCALE),
-                        (int) (vertices[i+1].x * -SCALE),
-                        (int) (vertices[i+1].y * -SCALE)
+                        (int) (vertices[i + 1].x * SCALE),
+                        (int) (vertices[i + 1].y * -SCALE)
                 );
             }
         }
         g.setTransform(saveTransform);
 
 
-
-        //show debug
+        //рисуем текст дебаг
         g.setFont(new Font("Arial", 0, 16));
-        //g.setColor(Color.BLACK);
         g.drawString(debug, 30, 30);
-
     }
 
 

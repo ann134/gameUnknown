@@ -1,11 +1,7 @@
 package pac2Graphics;
 
-import org.dyn4j.dynamics.contact.ContactPoint;
-import org.dyn4j.geometry.Vector2;
-
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.List;
 
 
 public class HeroKeyListener implements KeyListener {
@@ -21,7 +17,8 @@ public class HeroKeyListener implements KeyListener {
 
     private boolean stopGo = false;
     private boolean stopGoBack = false;
-    private boolean stopJump = false;
+    //private boolean stopJump = false;
+
     double y = 0;
 
     private int key;
@@ -52,7 +49,7 @@ public class HeroKeyListener implements KeyListener {
         if (key == 32){
             jump = true;
 
-            stopJump = false;
+            //stopJump = false;
         }
 
         showButtonsDebug();
@@ -82,7 +79,7 @@ public class HeroKeyListener implements KeyListener {
 
         //больше не прыгаем
         if (key == 32){
-            stopJump = true;
+            //stopJump = true;
 
             jump = false;
         }
