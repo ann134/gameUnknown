@@ -24,11 +24,10 @@ public class Kolobok extends GameObject {
         body = new Body();
         body.addFixture(cirShape);
         body.setMass(MassType.NORMAL);
-        body.translate(10, -1);
+        body.translate(10, 15);
         body.applyForce(new Vector2(100.0, 0.0));
         body.setLinearDamping(0.05);
     }
-
 
     public void draw(Canvas canvas) {
         double r = radius;

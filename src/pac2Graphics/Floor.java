@@ -46,7 +46,12 @@ public class Floor extends GameObject {
 
         List<Vector2> floorPointsInWorld = new ArrayList<>();
         for (PixelCoords floorPoint : floorPoints)
-            floorPointsInWorld.add(new Vector2(floorPoint.x / Canvas.SCALE, floorPoint.y / -Canvas.SCALE));
+//            floorPointsInWorld.add(new Vector2(floorPoint.x / Canvas.SCALE, floorPoint.y / -Canvas.SCALE + Camera.SCREEN_H));
+            floorPointsInWorld.add(new Vector2(
+                    Camera.SCREEN_W * floorPoint.x / floorImage.getWidth(),
+                    Camera.SCREEN_H * (floorImage.getHeight() - floorPoint.y) / floorImage.getHeight()
+            ));
+
         List<Link> links = Geometry.createLinks(floorPointsInWorld, false);
 
         body = new Body();

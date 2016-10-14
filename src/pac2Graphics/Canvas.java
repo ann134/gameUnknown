@@ -5,7 +5,6 @@ import org.dyn4j.dynamics.Body;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
 public class Canvas {
@@ -25,8 +24,15 @@ public class Canvas {
     public void transformBody(Body body) {
         g.setTransform(saveTransform);
 
+        g.translate(0, Camera.SCREEN_H * SCALE);
         g.translate(body.getTransform().getTranslationX() * SCALE, body.getTransform().getTranslationY() * -SCALE);
         g.rotate(-body.getTransform().getRotation());
+    }
+
+    public void resetTransform() {
+        g.setTransform(saveTransform);
+
+        g.translate(0, Camera.SCREEN_H * SCALE);
     }
 
     public void kill() {
