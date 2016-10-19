@@ -8,16 +8,12 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Camera {
     private Vector2 position = new Vector2(0, 0);
-
-
-    /*private BufferedImage white;
-    private BufferedImage white;
-    private BufferedImage white;
-    private BufferedImage white;*/
 
     private BufferedImage white;
     public final static BufferedImage NOTHING_IMG = new BufferedImage(1920, 1080, BufferedImage.TYPE_BYTE_BINARY);
@@ -29,6 +25,8 @@ public class Camera {
     public final static int BG_H = 25;
 
     public final static int HERO_POSITION_H = 5; //от низа экрана до героя
+
+    private Map<BgCoords,BufferedImage> map = new HashMap<>();
 
     public Camera() throws IOException {
         white = ImageIO.read(new File("white.jpg"));
@@ -53,9 +51,23 @@ public class Camera {
     }
 
     public BufferedImage getBgImage(BgCoords bgC) {
+
         try {
-            String s = "bg_" + bgC.x + "_" + bgC.y + ".jpg";
-            return ImageIO.read(new File(s));
+            if (map.containsKey(bgC)){
+                return map.get(bgC);
+            } else {
+                String s = "bg_" + bgC.x + "_" + bgC.y + ".jpg";
+                map.put(bgC, ImageIO.read(new File(s)));
+
+                if (map.size() > 5){
+
+                }
+
+                return map.get(bgC);
+            }
+
+            /*String s = "bg_" + bgC.x + "_" + bgC.y + ".jpg";
+            return ImageIO.read(new File(s));*/
         } catch (Exception e) {
             try {
                 return white;
