@@ -1,5 +1,7 @@
 package pac2Graphics;
 
+import java.util.Objects;
+
 public class BgCoords {
 
     public int x;
@@ -10,4 +12,16 @@ public class BgCoords {
         this.y = y;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BgCoords coords = (BgCoords) o;
+        return x == coords.x && y == coords.y;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
+    }
 }

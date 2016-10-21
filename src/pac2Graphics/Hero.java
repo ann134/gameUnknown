@@ -10,12 +10,14 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class Hero extends GameObject {
 
     private BufferedImage wirt;
 
-    private Floor floor;
+    /*private Floor floor;*/
+    private List<Floor> floors;
 
     private boolean go = false;
     private boolean goBack = false;
@@ -26,9 +28,9 @@ public class Hero extends GameObject {
     //private boolean stopJump = false;
 
 
-    public Hero(Floor floor) throws IOException {
+    public Hero(List<Floor> floors) throws IOException {
         wirt = ImageIO.read(new File("wirt.png"));
-        this.floor = floor;
+        this.floors = floors;
 
         Rectangle heroShape = new Rectangle(1, 2);
         body = new Body();
@@ -36,7 +38,7 @@ public class Hero extends GameObject {
         body.addFixture(heroShape, BodyFixture.DEFAULT_DENSITY, 10, BodyFixture.DEFAULT_RESTITUTION);
         //hero.applyImpulse(new Vector2(100, 100));
         body.setMass(MassType.FIXED_ANGULAR_VELOCITY);
-        body.translate(2, 3);
+        body.translate(20, 3);
     }
 
 
@@ -52,12 +54,6 @@ public class Hero extends GameObject {
 
         //идем вперед обратно
         if (go) {
-            /*if (-3 < linearVelocity.x) {
-                if (linearVelocity.x == 0)
-                    hero.applyImpulse(new Vector2(-3, 0));
-                hero.applyImpulse(new Vector2(-2, 0));
-            }*/
-
             if (linearVelocity.x < 3) {
                 if (linearVelocity.x == 0)
                     body.applyImpulse(new Vector2(3, 0));
@@ -67,12 +63,6 @@ public class Hero extends GameObject {
 
         //идем назад обратно
         if (goBack) {
-            /*if (linearVelocity.x < 3) {
-                if (linearVelocity.x == 0)
-                    hero.applyImpulse(new Vector2(3, 0));
-                hero.applyImpulse(new Vector2(2, 0));
-            }*/
-
             if (-3 < linearVelocity.x) {
                 if (linearVelocity.x == 0)
                     body.applyImpulse(new Vector2(-3, 0));
@@ -83,10 +73,13 @@ public class Hero extends GameObject {
         //прыжок
         if (jump) {
             if (linearVelocity.y < 2)
-                if (body.isInContact(floor.getBody())) {
+                if (isHeroConectedFloor(floors)) {
                     body.applyImpulse(new Vector2(0, 15));
                 }
         }
+
+
+
 
 
         //тормозим когда идем вперед
@@ -107,6 +100,17 @@ public class Hero extends GameObject {
             //heroKeyListener.setJump(false);
         }*/
     }
+
+    private boolean isHeroConectedFloor(List<Floor> floors){
+        for (Floor floor: floors){
+            if (body.isInContact(floor.getBody())) {
+               return true;
+            }
+        }
+
+        return false;
+    }
+
 
     //getters
     public boolean getGo() {
@@ -137,26 +141,21 @@ public class Hero extends GameObject {
     //setters
     public void setGo(boolean newGo){
         go = newGo;
-        /*showButtonsDebug();*/
     }
 
     public void setGoBack(boolean newGoBack){
         goBack = newGoBack;
-        /*showButtonsDebug();*/
     }
 
     public void setJump(boolean newJump){
         jump = newJump;
-        /*showButtonsDebug();*/
     }
 
     public void setStopGo(boolean newStopGo){
         stopGo = newStopGo;
-        /*showButtonsDebug();*/
     }
 
     public void setStopGoBack(boolean newStopGoBack){
         stopGoBack = newStopGoBack;
-        /*showButtonsDebug();*/
     }
 }

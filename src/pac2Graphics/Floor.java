@@ -19,12 +19,25 @@ public class Floor extends GameObject {
 
     /*protected Body body;*/
 
-    public Floor() throws IOException {
-        BufferedImage floorImage = ImageIO.read(new File("backgroundFloor.png"));
+    private int bgx;
 
+    public Floor(int bgx) throws IOException {
+        this.bgx = bgx;
+
+        //грузим картинку
+       BufferedImage floorImage; /* = ImageIO.read(new File("backgroundFloor.png"))*/;
+        try {
+            String s = "bgFloor_" + bgx + ".png";
+            floorImage = ImageIO.read(new File(s));
+        } catch (Exception e){
+            System.out.println("не прочитали пол");
+            floorImage = ImageIO.read(new File("bg_0_0.png"));
+        }
+
+        //читаем картинку
         ArrayList<PixelCoords> floorPoints = new ArrayList<>();
-        //перебираем пиксели
-        for (int x = 1; x < floorImage.getWidth(); x++) {
+
+        for (int x = 1; x < floorImage.getWidth(); x++) {     //перебираем пиксели
             for (int y = 1; y < floorImage.getHeight(); y++) {
                 int white = 0xFFFFFFFF;
                 int black = 0xFF000000;
@@ -44,12 +57,12 @@ public class Floor extends GameObject {
             }
         }
 
+        // создаем точки для пола в мировых координатах
         List<Vector2> floorPointsInWorld = new ArrayList<>();
         for (PixelCoords floorPoint : floorPoints)
-//            floorPointsInWorld.add(new Vector2(floorPoint.x / Canvas.SCALE, floorPoint.y / -Canvas.SCALE + Camera.SCREEN_H));
             floorPointsInWorld.add(new Vector2(
-                    Camera.SCREEN_W * floorPoint.x / floorImage.getWidth(),
-                    Camera.SCREEN_H * (floorImage.getHeight() - floorPoint.y) / floorImage.getHeight()
+                    Camera.BG_W * bgx + Camera.BG_W * floorPoint.x / floorImage.getWidth(),
+                    Camera.BG_H * (floorImage.getHeight() - floorPoint.y) / floorImage.getHeight()
             ));
 
         List<Link> links = Geometry.createLinks(floorPointsInWorld, false);

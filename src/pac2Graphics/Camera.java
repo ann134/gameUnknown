@@ -19,14 +19,14 @@ public class Camera {
     public final static BufferedImage NOTHING_IMG = new BufferedImage(1920, 1080, BufferedImage.TYPE_BYTE_BINARY);
 
     public final static double SCREEN_W = 35;
-    public final static double SCREEN_H = 35.0 * 1080 / 1920; //примерно 20;
+    public final static double SCREEN_H = 18;
 
-    public final static int BG_W = 35;
-    public final static int BG_H = 25;
+    public final static double BG_W = 35;
+    public final static double BG_H = 35.0 * 1080 / 1920; //примерно 20;
 
     public final static int HERO_POSITION_H = 5; //от низа экрана до героя
 
-    private Map<BgCoords,BufferedImage> map = new HashMap<>();
+    private Map<BgCoords, BufferedImage> map = new HashMap<>();
 
     public Camera() throws IOException {
         white = ImageIO.read(new File("white.jpg"));
@@ -51,23 +51,26 @@ public class Camera {
     }
 
     public BufferedImage getBgImage(BgCoords bgC) {
+        if (map.containsKey(bgC)) {
+            return map.get(bgC);
+        } else {
+            map.put(bgC, loadBgImage(bgC));
 
-        try {
-            if (map.containsKey(bgC)){
-                return map.get(bgC);
-            } else {
-                String s = "bg_" + bgC.x + "_" + bgC.y + ".jpg";
-                map.put(bgC, ImageIO.read(new File(s)));
-
-                if (map.size() > 5){
-
+            if (map.size() > 10) {
+                for (BgCoords coords : map.keySet()) {
+                    if (Math.abs(bgC.x - coords.x) > 4)
+                        map.remove(coords);
                 }
-
-                return map.get(bgC);
             }
 
-            /*String s = "bg_" + bgC.x + "_" + bgC.y + ".jpg";
-            return ImageIO.read(new File(s));*/
+            return map.get(bgC);
+        }
+    }
+
+    private BufferedImage loadBgImage(BgCoords bgC) {
+        try {
+            String s = "bg_" + bgC.x + "_" + bgC.y + ".jpg";
+            return ImageIO.read(new File(s));
         } catch (Exception e) {
             try {
                 return white;
@@ -83,6 +86,24 @@ public class Camera {
             canvas.drawImage(getBgImage(bg), bg.x * BG_W, (bg.y + 1) * BG_H, BG_W, BG_H);
     }
 
+    public void move(Hero hero, double elapsedTime){
+        Vector2 camPos = getPosition();
+        Vector2 heroPos = hero.getBody().getTransform().getTranslation();
+
+        double dx = heroPos.x - camPos.x;
+        double dy = heroPos.y - camPos.y;
+        double d = Math.sqrt(dx * dx + dy * dy); // расстояние между героем и камерой
+
+        double speed =  0.5 + d * 5; //чем больше 5, тем быстрее камера долетает до героя
+        double dd = speed * elapsedTime; // на сколько уменьшаем
+
+        if (Math.abs(d) < 1e-8 || d <= dd)
+            setPosition(heroPos);
+        else {
+            double k = dd / d;
+            setPosition(new Vector2(camPos.x + k * dx, camPos.y + k * dy));
+        }
+    }
 
     public void setPosition(Vector2 position) {
         this.position = position;

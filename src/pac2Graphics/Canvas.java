@@ -2,6 +2,7 @@ package pac2Graphics;
 
 
 import org.dyn4j.dynamics.Body;
+import org.dyn4j.geometry.Vector2;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -22,9 +23,8 @@ public class Canvas {
     }
 
     public void transformBody(Body body) {
-        g.setTransform(saveTransform);
+        resetTransform();
 
-        g.translate(0, Camera.SCREEN_H * SCALE);
         g.translate(body.getTransform().getTranslationX() * SCALE, body.getTransform().getTranslationY() * -SCALE);
         g.rotate(-body.getTransform().getRotation());
     }
@@ -32,7 +32,8 @@ public class Canvas {
     public void resetTransform() {
         g.setTransform(saveTransform);
 
-        g.translate(0, Camera.SCREEN_H * SCALE);
+        Vector2 cameraPos = camera.getPosition();
+        g.translate((-cameraPos.x + Camera.SCREEN_W / 2) * SCALE, (cameraPos.y + Camera.SCREEN_H - Camera.HERO_POSITION_H) * SCALE);
     }
 
     public void kill() {

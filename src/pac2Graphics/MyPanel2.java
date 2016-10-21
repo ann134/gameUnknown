@@ -3,37 +3,29 @@ package pac2Graphics;
 
 import org.dyn4j.dynamics.World;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.util.*;
+import java.util.List;
 
 public class MyPanel2 extends JPanel {
-    /*private BufferedImage smile;
-    private BufferedImage wirt;*/
 
-    /*public static final double SCALE = 45.0;*/
     public static final double NANO_TO_BASE = 1.0e9;
 
+    private Camera camera;
     private World world;
     private long last;
 
     private Floor floor;
+    private List<Floor> floors;
     private Kolobok kolobok;
     private Hero hero;
-
-    private Camera camera;
 
     private String debug = "hello";
 
     public MyPanel2() throws IOException {
-        /*smile = ImageIO.read(new File("smile.png"));
-        wirt = ImageIO.read(new File("wirt.png"));*/
-
         camera = new Camera();
-
         this.initializeWorld();
     }
 
@@ -53,16 +45,27 @@ public class MyPanel2 extends JPanel {
     protected void initializeWorld() throws IOException {
         this.world = new World();
 
-        // новый пол
-        floor = new Floor();
-        world.addBody(floor.getBody());
+
+        floors = new ArrayList<>();
+        Set<Integer> xforfloor = new HashSet<>();
+        for (BgCoords bg : camera.getVisibleBackgrounds()){
+            xforfloor.add(bg.x);
+        }
+
+        for (int x : xforfloor){
+            Floor f = new Floor(x);
+            floors.add(f);
+            world.addBody(f.getBody());
+        }
+
+        /*floor = new Floor();
+        world.addBody(floor.getBody());*/
 
         kolobok = new Kolobok(0.5);
         world.addBody(kolobok.getBody());
 
-        hero = new Hero(floor);
+        hero = new Hero(floors);
         world.addBody(hero.getBody());
-
     }
 
     public void start() {
@@ -79,21 +82,26 @@ public class MyPanel2 extends JPanel {
     }
 
     private void gameLoop() {
-        hero.move();
-
-        repaint();
-
         long time = System.nanoTime();
         long diff = time - this.last;
 
         this.last = time;
-        double elapsedTime = diff / NANO_TO_BASE;
+        double elapsedTime = diff / NANO_TO_BASE; //сколько секунд прошло с прошлого раза
+
+        hero.move();
+
+        //TODO сделать побольше склеиваемых картинок фона
+        //TODO сделать пол отдельно на каждом "экране"
+        //TODO придумать одну простую головоломку, чтобы попробовать на ней, как создавать объекты и взаимодействия между ними
+
+        camera.move(hero, elapsedTime);
+
+        repaint();
 
         this.world.update(elapsedTime);
     }
 
     public void render(Graphics2D g) {
-        //рисуем на холсте
         Canvas canvas = new Canvas(g, camera);
 
         canvas.resetTransform();
@@ -102,8 +110,14 @@ public class MyPanel2 extends JPanel {
         canvas.transformBody(kolobok.getBody());
         kolobok.draw(canvas);
 
-        canvas.transformBody(floor.getBody());
-        floor.draw(canvas);
+
+        for (Floor floor: floors){
+            canvas.transformBody(floor.getBody());
+            floor.draw(canvas);
+        }
+
+        /*canvas.transformBody(floor.getBody());
+        floor.draw(canvas);*/
 
         canvas.transformBody(hero.getBody());
         hero.draw(canvas);

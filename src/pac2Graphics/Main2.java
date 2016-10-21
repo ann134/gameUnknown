@@ -1,7 +1,6 @@
 package pac2Graphics;
 
 
-import java.awt.*;
 import java.io.IOException;
 
 public class Main2 {

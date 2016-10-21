@@ -11,13 +11,14 @@ public class MyFrame2 extends JFrame {
         super("My Frame");
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(800, 800);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setSize((int)(Camera.SCREEN_W * Canvas.SCALE), (int)(Camera.SCREEN_H * Canvas.SCALE));
+//        setExtendedState(JFrame.MAXIMIZED_BOTH);
         GridLayout l = new GridLayout(1, 1);
         setLayout(l);
         MyPanel2 p = new MyPanel2();
         p.setBackground(new Color(255, 241, 198));
         add(p);
+        setLocationRelativeTo(null);
 
         HeroKeyListener heroKeyListener = new HeroKeyListener(p);
         addKeyListener(heroKeyListener);
