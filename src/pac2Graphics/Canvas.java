@@ -9,7 +9,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 public class Canvas {
-    public final static double SCALE = 45.0;
+    public final static double SCALE = 50.0;
 
     private Graphics2D g;
     private Camera camera;

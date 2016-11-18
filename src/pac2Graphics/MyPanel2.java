@@ -11,21 +11,26 @@ import java.util.List;
 
 public class MyPanel2 extends JPanel {
 
+    private boolean debugMode = true;
+    private String debug = "hello";
+
     public static final double NANO_TO_BASE = 1.0e9;
 
-    private Camera camera;
-    private World world;
     private long last;
+    /*public static long start;*/
+    public Timer timer;
 
-    private Floor floor;
+    private World world;
+    private Camera camera;
+
     private List<Floor> floors;
-    private Kolobok kolobok;
     private Hero hero;
-
-    private String debug = "hello";
+    private Kolobok kolobok;
+    private Tree tree;
 
     public MyPanel2() throws IOException {
         camera = new Camera();
+        /*timer = new Timer();*/
         this.initializeWorld();
     }
 
@@ -45,31 +50,33 @@ public class MyPanel2 extends JPanel {
     protected void initializeWorld() throws IOException {
         this.world = new World();
 
-
-        floors = new ArrayList<>();
-        Set<Integer> xforfloor = new HashSet<>();
-        for (BgCoords bg : camera.getVisibleBackgrounds()){
-            xforfloor.add(bg.x);
-        }
-
-        for (int x : xforfloor){
-            Floor f = new Floor(x);
-            floors.add(f);
-            world.addBody(f.getBody());
-        }
-
-        /*floor = new Floor();
-        world.addBody(floor.getBody());*/
+        loadFloor();
 
         kolobok = new Kolobok(0.5);
         world.addBody(kolobok.getBody());
 
-        hero = new Hero(floors);
+        tree = new Tree();
+        world.addBody(tree.getBody());
+
+        hero = new Hero(floors, tree, kolobok);
         world.addBody(hero.getBody());
+    }
+
+    private void loadFloor() throws IOException {
+        floors = new ArrayList<>();
+        PixelCoords last = null;
+        for (int x = -1 ; x < 10; x++){
+            Floor f = new Floor(x, last);
+            last = f.getLastPC();
+            floors.add(f);
+            world.addBody(f.getBody());
+        }
     }
 
     public void start() {
         this.last = System.nanoTime();
+
+        Timer.start = System.nanoTime();
 
         Thread thread = new Thread() {
             public void run() {
@@ -90,9 +97,10 @@ public class MyPanel2 extends JPanel {
 
         hero.move();
 
-        //TODO сделать побольше склеиваемых картинок фона
-        //TODO сделать пол отдельно на каждом "экране"
         //TODO придумать одну простую головоломку, чтобы попробовать на ней, как создавать объекты и взаимодействия между ними
+        //TODO головоломка: падающее дерево
+        //TODO указывать положение объектов с помощью файлов. Аналогично файлам для пола
+        //TODO чтобы пол склеивался непрерывно между экранами
 
         camera.move(hero, elapsedTime);
 
@@ -101,26 +109,39 @@ public class MyPanel2 extends JPanel {
         this.world.update(elapsedTime);
     }
 
-    public void render(Graphics2D g) {
+    private void render(Graphics2D g) {
+        //определить время, прошедшее с момента запуска программы, превратить его в номер кадра. Передавать номер кадра в draw() у всех GameObject (hero, kolobok)
+        /*long now = System.nanoTime();
+        int frame = (int) ((now - timer.start) / NANO_TO_BASE * 10);*/
+
+        int frame = Timer.getFrameFrom(Timer.start);
         Canvas canvas = new Canvas(g, camera);
 
         canvas.resetTransform();
         camera.drawBackground(canvas);
 
-        canvas.transformBody(kolobok.getBody());
-        kolobok.draw(canvas);
-
-
-        for (Floor floor: floors){
-            canvas.transformBody(floor.getBody());
-            floor.draw(canvas);
+        if (debugMode){
+            for (Floor floor: floors){
+                canvas.transformBody(floor.getBody());
+                floor.drawDebug(canvas);
+            }
         }
 
-        /*canvas.transformBody(floor.getBody());
-        floor.draw(canvas);*/
-
         canvas.transformBody(hero.getBody());
-        hero.draw(canvas);
+        hero.draw(canvas, frame);
+        if (debugMode){
+            hero.drawDebug(canvas);
+        }
+
+        canvas.transformBody(kolobok.getBody());
+        kolobok.draw(canvas, frame);
+
+
+        canvas.transformBody(tree.getBody());
+        tree.draw(canvas, frame);
+        if (debugMode){
+            tree.drawDebug(canvas);
+        }
 
         canvas.kill();
 
@@ -132,6 +153,10 @@ public class MyPanel2 extends JPanel {
     public Hero getHero() {
         return hero;
     }
+
+    /*public Timer getTimer() {
+        return timer;
+    }*/
 
     public void setDebug(String debug) {
         this.debug = debug;

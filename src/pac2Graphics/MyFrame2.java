@@ -16,7 +16,7 @@ public class MyFrame2 extends JFrame {
         GridLayout l = new GridLayout(1, 1);
         setLayout(l);
         MyPanel2 p = new MyPanel2();
-        p.setBackground(new Color(255, 241, 198));
+        p.setBackground(new Color(0, 0, 0));
         add(p);
         setLocationRelativeTo(null);
 

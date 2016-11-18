@@ -15,7 +15,7 @@ import java.util.Map;
 public class Camera {
     private Vector2 position = new Vector2(0, 0);
 
-    private BufferedImage white;
+    private BufferedImage black;
     public final static BufferedImage NOTHING_IMG = new BufferedImage(1920, 1080, BufferedImage.TYPE_BYTE_BINARY);
 
     public final static double SCREEN_W = 35;
@@ -26,10 +26,10 @@ public class Camera {
 
     public final static int HERO_POSITION_H = 5; //от низа экрана до героя
 
-    private Map<BgCoords, BufferedImage> map = new HashMap<>();
+    private Map<BgCoords, BufferedImage> bgImagesCache = new HashMap<>();
 
     public Camera() throws IOException {
-        white = ImageIO.read(new File("white.jpg"));
+        black = ImageIO.read(new File("bg/black.jpg"));
     }
 
     public List<BgCoords> getVisibleBackgrounds() {
@@ -50,30 +50,32 @@ public class Camera {
         return list;
     }
 
-    public BufferedImage getBgImage(BgCoords bgC) {
-        if (map.containsKey(bgC)) {
-            return map.get(bgC);
+    private BufferedImage getBgImage(BgCoords bgC) {
+        if (bgImagesCache.containsKey(bgC)) {
+            return bgImagesCache.get(bgC);
         } else {
-            map.put(bgC, loadBgImage(bgC));
+            bgImagesCache.put(bgC, loadBgImage(bgC));
 
-            if (map.size() > 10) {
-                for (BgCoords coords : map.keySet()) {
-                    if (Math.abs(bgC.x - coords.x) > 4)
-                        map.remove(coords);
+            if (bgImagesCache.size() > 10) {
+                Map<BgCoords,BufferedImage> newCash = new HashMap<>();
+                for (BgCoords coords : bgImagesCache.keySet()) {
+                    if (Math.abs(bgC.x - coords.x) < 4)
+                        newCash.put(coords, bgImagesCache.get(coords));
                 }
+                bgImagesCache = newCash;
             }
 
-            return map.get(bgC);
+            return bgImagesCache.get(bgC);
         }
     }
 
     private BufferedImage loadBgImage(BgCoords bgC) {
         try {
-            String s = "bg_" + bgC.x + "_" + bgC.y + ".jpg";
+            String s = "bg/bg_" + bgC.x + "_" + bgC.y + ".jpg";
             return ImageIO.read(new File(s));
         } catch (Exception e) {
             try {
-                return white;
+                return black;
             } catch (Exception e2) {
                 return NOTHING_IMG;
             }

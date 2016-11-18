@@ -9,7 +9,7 @@ public class Main2 {
             MyFrame2 myFrame = new MyFrame2();
             myFrame.setVisible(true);
         } catch (IOException e) {
-            System.out.println("Ошибка!");
+            System.out.println("Main Ошибка!");
             e.printStackTrace();
         }
     }

@@ -29,7 +29,7 @@ public class Kolobok extends GameObject {
         body.setLinearDamping(0.05);
     }
 
-    public void draw(Canvas canvas) {
+    public void draw(Canvas canvas, int frame) {
         double r = radius;
 
         canvas.drawImage(smile, -r, r, r * 2, r * 2);

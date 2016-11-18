@@ -20,8 +20,12 @@ public class HeroKeyListener implements KeyListener {
     public void keyPressed(KeyEvent e) {
         key = e.getKeyCode();
 
-        //идем вперед
+        //идем вперед вправо
         if (key == 39) {
+            /*hero.setRight(true);
+            hero.setLeft(false);*/
+            hero.setGoPressed(System.nanoTime());
+
             hero.setGo(true);
             hero.setGoBack(false);
 
@@ -29,8 +33,12 @@ public class HeroKeyListener implements KeyListener {
             hero.setStopGoBack(false);
         }
 
-        //идем назад
+        //идем назад влево
         if (key == 37) {
+            /*hero.setLeft(true);
+            hero.setRight(false);*/
+            hero.setGoBackPressed(System.nanoTime());
+
             hero.setGoBack(true);
             hero.setGo(false);
 
@@ -76,6 +84,6 @@ public class HeroKeyListener implements KeyListener {
 
     private void showButtonsDebug() {
         y = hero.getBody().getLinearVelocity().y;
-        p.setDebug(String.format("go = %b, back = %b, jump = %b, stopGo = %b, stopBack = %b ", hero.getGo(), hero.getGoBack(), hero.getJump(), hero.getStopGo(), hero.getStopGoBack()) + y);
+        p.setDebug(String.format("go = %b, back = %b, jump = %b, right = %b, left = %b ", hero.getGo(), hero.getGoBack(), hero.getJump(), hero.getRight(), hero.getLeft()) + y);
     }
 }
