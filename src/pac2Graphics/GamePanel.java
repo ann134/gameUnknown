@@ -2,6 +2,9 @@ package pac2Graphics;
 
 
 import org.dyn4j.dynamics.World;
+import org.dyn4j.dynamics.joint.WeldJoint;
+import org.dyn4j.geometry.Transform;
+import org.dyn4j.geometry.Vector2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,16 +12,17 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
-public class MyPanel2 extends JPanel {
+public class GamePanel extends JPanel {
 
-    private boolean debugMode = true;
+    //TODO головоломка: падающее дерево
+    //TODO указывать положение объектов с помощью файлов. Аналогично файлам для пола
+
+    private static final boolean DEBUG_MODE = true;
     private String debug = "hello";
 
     public static final double NANO_TO_BASE = 1.0e9;
-
     private long last;
-    /*public static long start;*/
-    public Timer timer;
+    /*public Timer timer;*/
 
     private World world;
     private Camera camera;
@@ -28,7 +32,7 @@ public class MyPanel2 extends JPanel {
     private Kolobok kolobok;
     private Tree tree;
 
-    public MyPanel2() throws IOException {
+    public GamePanel() throws IOException {
         camera = new Camera();
         /*timer = new Timer();*/
         this.initializeWorld();
@@ -53,13 +57,27 @@ public class MyPanel2 extends JPanel {
         loadFloor();
 
         kolobok = new Kolobok(0.5);
+        kolobok.body.translate(21, 5); //TODO do not use the field 'body' directly
+        kolobok.body.applyForce(new Vector2(100.0, 0.0));
         world.addBody(kolobok.getBody());
 
         tree = new Tree();
         world.addBody(tree.getBody());
 
-        hero = new Hero(floors, tree, kolobok);
+        //TODO пусть герой получает на вход список обектов List<GameObject>, от которых можно оттолкнуться
+
+        List<GameObject> l = new ArrayList<>(floors);
+        l.add(tree);
+        l.add(kolobok);
+        AllWorldGameObjects list = new AllWorldGameObjects (l);
+
+        hero = new Hero(world, list);
+        hero.body.translate(20, 5);
         world.addBody(hero.getBody());
+
+        /*WeldJoint joint = new WeldJoint(hero.body, kolobok.body, new Vector2(21, 5));
+        world.addJoint(joint);*/
+//        world.removeJoint(joint);
     }
 
     private void loadFloor() throws IOException {
@@ -96,31 +114,25 @@ public class MyPanel2 extends JPanel {
         double elapsedTime = diff / NANO_TO_BASE; //сколько секунд прошло с прошлого раза
 
         hero.move();
-
-        //TODO придумать одну простую головоломку, чтобы попробовать на ней, как создавать объекты и взаимодействия между ними
-        //TODO головоломка: падающее дерево
-        //TODO указывать положение объектов с помощью файлов. Аналогично файлам для пола
-        //TODO чтобы пол склеивался непрерывно между экранами
-
         camera.move(hero, elapsedTime);
 
-        repaint();
+        hero.processCarryButtonPress();
 
+        repaint();
         this.world.update(elapsedTime);
     }
 
-    private void render(Graphics2D g) {
-        //определить время, прошедшее с момента запуска программы, превратить его в номер кадра. Передавать номер кадра в draw() у всех GameObject (hero, kolobok)
-        /*long now = System.nanoTime();
-        int frame = (int) ((now - timer.start) / NANO_TO_BASE * 10);*/
 
+    private void render(Graphics2D g) {
+
+        //определяем время, прошедшее с момента запуска программы, превратщаем его в номер кадра. номер кадра передается как параметр draw() у всех GameObject
         int frame = Timer.getFrameFrom(Timer.start);
         Canvas canvas = new Canvas(g, camera);
 
         canvas.resetTransform();
         camera.drawBackground(canvas);
 
-        if (debugMode){
+        if (DEBUG_MODE){
             for (Floor floor: floors){
                 canvas.transformBody(floor.getBody());
                 floor.drawDebug(canvas);
@@ -129,9 +141,10 @@ public class MyPanel2 extends JPanel {
 
         canvas.transformBody(hero.getBody());
         hero.draw(canvas, frame);
-        if (debugMode){
+        if (DEBUG_MODE){
             hero.drawDebug(canvas);
         }
+        setDebug(" coords: " + (int) hero.getBody().getWorldCenter().x + " , " + (int) hero.getBody().getWorldCenter().y);
 
         canvas.transformBody(kolobok.getBody());
         kolobok.draw(canvas, frame);
@@ -139,7 +152,7 @@ public class MyPanel2 extends JPanel {
 
         canvas.transformBody(tree.getBody());
         tree.draw(canvas, frame);
-        if (debugMode){
+        if (DEBUG_MODE){
             tree.drawDebug(canvas);
         }
 

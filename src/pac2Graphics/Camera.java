@@ -13,10 +13,14 @@ import java.util.List;
 import java.util.Map;
 
 public class Camera {
+
     private Vector2 position = new Vector2(0, 0);
 
     private BufferedImage black;
     public final static BufferedImage NOTHING_IMG = new BufferedImage(1920, 1080, BufferedImage.TYPE_BYTE_BINARY);
+
+    private Map<BgCoords, BufferedImage> bgImagesCache = new HashMap<>();
+
 
     public final static double SCREEN_W = 35;
     public final static double SCREEN_H = 18;
@@ -25,8 +29,6 @@ public class Camera {
     public final static double BG_H = 35.0 * 1080 / 1920; //примерно 20;
 
     public final static int HERO_POSITION_H = 5; //от низа экрана до героя
-
-    private Map<BgCoords, BufferedImage> bgImagesCache = new HashMap<>();
 
     public Camera() throws IOException {
         black = ImageIO.read(new File("bg/black.jpg"));

@@ -15,7 +15,7 @@ public class MyFrame2 extends JFrame {
 //        setExtendedState(JFrame.MAXIMIZED_BOTH);
         GridLayout l = new GridLayout(1, 1);
         setLayout(l);
-        MyPanel2 p = new MyPanel2();
+        GamePanel p = new GamePanel();
         p.setBackground(new Color(0, 0, 0));
         add(p);
         setLocationRelativeTo(null);

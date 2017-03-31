@@ -6,6 +6,6 @@ public class Timer {
 
     public static int getFrameFrom(long startPoint){
         long now = System.nanoTime();
-        return ((int) ((now - startPoint) / MyPanel2.NANO_TO_BASE * FRAME_RATE));
+        return ((int) ((now - startPoint) / GamePanel.NANO_TO_BASE * FRAME_RATE));
     }
 }

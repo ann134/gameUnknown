@@ -6,10 +6,10 @@ import java.awt.event.KeyListener;
 
 public class HeroKeyListener implements KeyListener {
 
-    private MyPanel2 p;
+    private GamePanel p;
     private Hero hero;
 
-    public HeroKeyListener(MyPanel2 p) {
+    public HeroKeyListener(GamePanel p) {
         this.p = p;
         hero = p.getHero();
     }
@@ -20,7 +20,8 @@ public class HeroKeyListener implements KeyListener {
     public void keyPressed(KeyEvent e) {
         key = e.getKeyCode();
 
-        //идем вперед вправо
+
+        //идем вперед
         if (key == 39) {
             /*hero.setRight(true);
             hero.setLeft(false);*/
@@ -33,11 +34,11 @@ public class HeroKeyListener implements KeyListener {
             hero.setStopGoBack(false);
         }
 
-        //идем назад влево
+        //идем назад
         if (key == 37) {
             /*hero.setLeft(true);
             hero.setRight(false);*/
-            hero.setGoBackPressed(System.nanoTime());
+            hero.setWirtReverse(System.nanoTime());
 
             hero.setGoBack(true);
             hero.setGo(false);
@@ -49,6 +50,12 @@ public class HeroKeyListener implements KeyListener {
         // прыжок
         if (key == 32) {
             hero.setJump(true);
+        }
+
+
+        // взять
+        if (key == 16) {
+            hero.setCarried(true);
         }
 
         showButtonsDebug();
@@ -79,11 +86,17 @@ public class HeroKeyListener implements KeyListener {
             hero.setJump(false);
         }
 
+
+        // отпустить
+        if (key == 16) {
+            hero.setCarried(false);
+        }
+
         showButtonsDebug();
     }
 
     private void showButtonsDebug() {
-        y = hero.getBody().getLinearVelocity().y;
-        p.setDebug(String.format("go = %b, back = %b, jump = %b, right = %b, left = %b ", hero.getGo(), hero.getGoBack(), hero.getJump(), hero.getRight(), hero.getLeft()) + y);
+        /*y = hero.getBody().getLinearVelocity().y;
+        p.setDebug(String.format("go = %b, back = %b, jump = %b, right = %b, left = %b ", hero.getGo(), hero.getGoBack(), hero.getJump(), hero.getRight(), hero.getLeft()) + y);*/
     }
 }

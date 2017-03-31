@@ -15,8 +15,10 @@ public class Kolobok extends GameObject {
     private BufferedImage smile;
     private double radius;
 
+
     public Kolobok(double radius) throws IOException {
         this.radius = radius;
+        takeable = true;
 
         smile = ImageIO.read(new File("smile.png"));
 
@@ -24,8 +26,6 @@ public class Kolobok extends GameObject {
         body = new Body();
         body.addFixture(cirShape);
         body.setMass(MassType.NORMAL);
-        body.translate(10, 15);
-        body.applyForce(new Vector2(100.0, 0.0));
         body.setLinearDamping(0.05);
     }
 
@@ -33,5 +33,10 @@ public class Kolobok extends GameObject {
         double r = radius;
 
         canvas.drawImage(smile, -r, r, r * 2, r * 2);
+    }
+
+
+    public Vector2 getCarriedPoint(){
+        return new Vector2(-radius, 0);
     }
 }
