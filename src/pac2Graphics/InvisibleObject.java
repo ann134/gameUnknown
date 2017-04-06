@@ -3,38 +3,30 @@ package pac2Graphics;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.MassType;
+import org.dyn4j.geometry.Rectangle;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
-public class Tree extends GameObject {
+public class InvisibleObject extends GameObject {
 
-    private BufferedImage tre;
     private double w;
     private double h;
 
-    public Tree(double w, double h) throws IOException {
+    public InvisibleObject(double w, double h){
         this.w = w;
         this.h = h;
 
-        tre = ImageIO.read(new File("tree2.png"));
-
         body = new Body();
-        org.dyn4j.geometry.Rectangle r = new org.dyn4j.geometry.Rectangle(w, h);
-//        body.addFixture(heroShape, BodyFixture.DEFAULT_DENSITY, 10, BodyFixture.DEFAULT_RESTITUTION);
+        Rectangle r = new Rectangle(w, h);
+        BodyFixture bf = new BodyFixture(r);
+        bf.setSensor(true);
+        body.addFixture(bf);
 
-        body.addFixture(r, 2);
-
-        /*r.translate();*/
-        body.setMass(MassType.NORMAL);
-
+        body.setMass(MassType.INFINITE);
     }
 
     public void draw(Canvas canvas, int frame) {
-        canvas.drawImage(tre, -w / 2.0, h / 2.0, w, h);
+
     }
 
     public void drawDebug(Canvas canvas){

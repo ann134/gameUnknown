@@ -2,7 +2,7 @@ package pac2Graphics;
 
 public class Timer {
     public static long start;
-    public static final int FRAME_RATE = 10;
+    public static final int FRAME_RATE = 7;
 
     public static int getFrameFrom(long startPoint){
         long now = System.nanoTime();

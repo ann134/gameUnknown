@@ -1,5 +1,6 @@
 package pac2Graphics;
 
+import com.sun.org.apache.xpath.internal.SourceTree;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.World;
@@ -13,73 +14,43 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Hero extends GameObject {
-
-    //TODO подумать, при каких условиях герой может прыгать. Как вариант: перебрать тела, которых он касается, определить, есть хотя бы одно касание в области ног
-    //TODO анимировать героя. Отдельно верх, отдельно низ
-
-    /*private BufferedImage[] wirts = new BufferedImage[10];
-    private BufferedImage[] wirtsReturn = new BufferedImage[10];*/
-
-
-    private BufferedImage[] wirtsStay = new BufferedImage[5];
-    private BufferedImage[] wirtsStayReturn = new BufferedImage[5];
-
-    private BufferedImage[] wirtsRun = new BufferedImage[8];
-    private BufferedImage[] wirtsRunReturn = new BufferedImage[8];
-
-
 
     public static final double HERO_FRICTION = 10 * BodyFixture.DEFAULT_FRICTION;
     public final static double W = 1;
     public final static double H = 2.5;
 
-    private List<GameObject> allGameObjects;
+    private BufferedImage[] wirtsStay = new BufferedImage[8];
+    private BufferedImage[] wirtsStayReturn = new BufferedImage[8];
+
+    private BufferedImage[] wirtsRun = new BufferedImage[8];
+    private BufferedImage[] wirtsRunReturn = new BufferedImage[8];
+
+    private BufferedImage[] wirtsJump = new BufferedImage[1];
+    private BufferedImage[] wirtsJumpReturn = new BufferedImage[1];
+
+    private AllWorldGameObjects allGameObjects;
     private World world;
 
-    private boolean carried = false;
-    private GameObject carriedObject = null;
-    private WeldJoint joint = null;
 
-    //нужен метод setCarriedObject 1) отвязывает старый объект, если он был 2) привязывает новый. И нужен метод removeCarriedObject - отвязывеает объект
-    //setCarriedObject и removeCarriedObject вызываются при нажатии на кнопку взятия объектка.
+    private  boolean death = false;
 
-    //TODO these fields are set in the User Interface (UI) thread, and are read in the Game Loop thread
-    private boolean go = false;
-    private boolean goBack = false;
-    private boolean jump = false;
+    private long movementStart;
 
-    private boolean stopGo = false;
-    private boolean stopGoBack = false;
-    
-    private boolean right = false;
-    private boolean left = true;
 
     //TODO these fields are set in the Game Loop thread, and are read in the UI thread
     private boolean isHeroContactSomething = false;
 
-    //private boolean stopJump = false;
-    //private boolean move = false;
+    private GameObject carriedObject = null;
+    private WeldJoint joint = null;
+    private boolean carriedObjectIsToTheRight = false;
+    //нужен метод setCarriedObject 1) отвязывает старый объект, если он был 2) привязывает новый. И нужен метод removeCarriedObject - отвязывеает объект
+    //setCarriedObject и removeCarriedObject вызываются при нажатии на кнопку взятия объектка.
 
-    //private long goPressed;
-
-    private long wirtReverse;
 
     public Hero(World world, AllWorldGameObjects allObjects) throws IOException {
-        /*for (int i = 0; i < wirts.length; i++) {
-            String s = "hero/wirt" + "0" + i + ".png";
-            BufferedImage b = ImageIO.read(new File(s));
-            wirts[i] = b;
-        }
-        for (int i = 0; i < wirtsReturn.length; i++) {
-            String s = "hero/wirt" + "1" + i + ".png";
-            BufferedImage b = ImageIO.read(new File(s));
-            wirtsReturn[i] = b;
-        }*/
-
 
         for (int i = 1; i < wirtsStay.length + 1; i++) {
             String s = "hero/wirtStay" + "0" + i + ".png";
@@ -101,11 +72,20 @@ public class Hero extends GameObject {
             BufferedImage b = ImageIO.read(new File(s));
             wirtsRunReturn[i - 1] = b;
         }
-
+        for (int i = 1; i < wirtsJump.length + 1; i++) {
+            String s = "hero/wirtJump.png";
+            BufferedImage b = ImageIO.read(new File(s));
+            wirtsJump[i - 1] = b;
+        }
+        for (int i = 1; i < wirtsJumpReturn.length + 1; i++) {
+            String s = "hero/wirtJumpReverse.png";
+            BufferedImage b = ImageIO.read(new File(s));
+            wirtsJumpReturn[i - 1] = b;
+        }
 
 
         this.world = world;
-        allGameObjects = new ArrayList<>(allObjects.getList());
+        this.allGameObjects = allObjects;
 
 
         Rectangle heroShape = new Rectangle(W, H);
@@ -125,27 +105,31 @@ public class Hero extends GameObject {
         if (go) {
             right = true;
             left = false;
-            if (linearVelocity.x < 3) {
+            if (linearVelocity.x < 4) {  // тут было 3
                 if (isHeroContactSomething())
                     body.applyImpulse(new Vector2(2, 0));
             }
+            if (carriedObject != null && !carriedObjectIsToTheRight)
+                positionCarriedObject();
         }
 
         //идем назад
         if (goBack) {
             right = false;
             left = true;
-            if (-3 < linearVelocity.x) {
+            if (-4 < linearVelocity.x) {  // тут было -3
                 if (isHeroContactSomething())
                     body.applyImpulse(new Vector2(-2, 0));
             }
+            if (carriedObject != null && carriedObjectIsToTheRight)
+                positionCarriedObject();
         }
 
         //прыжок
         if (jump) {
             if (linearVelocity.y < 2)
                 if (isHeroContactSomething()) {
-                    body.applyImpulse(new Vector2(0, 15));
+                    body.applyImpulse(new Vector2(0, 20)); // y был 15
                 }
         }
 
@@ -184,22 +168,16 @@ public class Hero extends GameObject {
                 fixtureToTest = contact.getFixture1();
             }
 
-            //TODO refactor, move test to game objects
-            for (GameObject gameObject : allGameObjects) {
-                if (bodyToTest == gameObject.getBody()) {
-                    if (gameObject instanceof Floor) {
-                        if (!Floor.isVeryVertical((Link) fixtureToTest.getShape()))
-                            return true;
-                    } else {
-                        return true;
-                    }
-                }
+            if (allGameObjects.getObjectByBody(bodyToTest) instanceof Floor){
+                if (!Floor.isVeryVertical((Link) fixtureToTest.getShape()))
+                    return true;
+            } else {
+                return true;
             }
         }
 
         return false;
     }
-
 
     //TODO почему, если держать шарик под собой, то герой не может подпрыгнуть
     //TODO можно ли как-то при взятии объекта переносить его в область рук
@@ -208,42 +186,8 @@ public class Hero extends GameObject {
         if (getCarried()) {
             if (carriedObject == null) {
                 carriedObject = getHeroContactSomethingTakeable();
+                positionCarriedObject();
             }
-
-
-            if (carriedObject != null) {
-                carriedObject.body.setTransform(new Transform());
-
-                if (right){
-
-                    Vector2 carriedPoint = body.getWorldPoint(new Vector2(W/2, 0.1));
-                    carriedObject.body.translate(new Vector2(carriedPoint.x - carriedObject.getCarriedPoint().x, carriedPoint.y - carriedObject.getCarriedPoint().y));
-                } else {
-
-                    Vector2 carriedPoint = body.getWorldPoint(new Vector2(-W/2, 0.1));
-                    carriedObject.body.translate(new Vector2(carriedPoint.x + carriedObject.getCarriedPoint().x, carriedPoint.y - carriedObject.getCarriedPoint().y));
-                }
-
-                if (joint == null) {
-                    joint = new WeldJoint(body, carriedObject.body, new Vector2(0, 0));
-                    world.addJoint(joint);
-                }
-            }
-
-            /*if (getCarriedObject() == null) {
-                GameObject obj = getHeroContactSomethingTakeable();
-                setCarriedObject(obj);
-//                obj.body.setTransform(new Transform()); //убираем все преобразования объекта, он поворачивается прямо и переходит в 0,0
-//                точка держания = hero.body.getWorldPoint(*//*сюда ставим точку держания в локальных координатах героя*//*)
-//                obj.body.translate(точка держания минус точка держания колобка);
-            }
-
-            //TODO вот это действие очень логично для setCarriedObject.
-            if (getCarriedObject() != null) {
-                if (getJoint() == null)
-                    world.addJoint(createJoint());
-            }*/
-
         } else {
             if (joint != null) {
                 world.removeJoint(joint);
@@ -253,6 +197,29 @@ public class Hero extends GameObject {
         }
     }
 
+    private void positionCarriedObject() {
+        if (carriedObject != null) {
+            carriedObject.body.setTransform(new Transform());
+
+            //TODO fix ?! почему при разворачиваении объект не переносится
+            if (right){
+                carriedObjectIsToTheRight = true;
+                System.out.println("putting to the right");
+                Vector2 carriedPoint = body.getWorldPoint(new Vector2(W/2, 0.1));
+                carriedObject.body.translate(new Vector2(carriedPoint.x - carriedObject.getCarriedPoint().x + 0.1, carriedPoint.y - carriedObject.getCarriedPoint().y));
+            } else {
+                carriedObjectIsToTheRight = false;
+                System.out.println("putting to the left");
+                Vector2 carriedPoint = body.getWorldPoint(new Vector2(-W/2, 0.1));
+                carriedObject.body.translate(new Vector2(carriedPoint.x + carriedObject.getCarriedPoint().x - 0.1, carriedPoint.y - carriedObject.getCarriedPoint().y));
+            }
+
+            if (joint == null) {
+                joint = new WeldJoint(body, carriedObject.body, new Vector2(0, 0));
+                world.addJoint(joint);
+            }
+        }
+    }
 
     private GameObject getHeroContactSomethingTakeable() {
         Body heroBody = body;
@@ -266,46 +233,49 @@ public class Hero extends GameObject {
             else
                 bodyToTest = contact.getBody1();
 
-            for (GameObject gameObject : allGameObjects) {
-                if (bodyToTest == gameObject.getBody()) {
-                    if (gameObject.isTakeable())
-                        return gameObject;
-                }
-            }
+            if (allGameObjects.getObjectByBody(bodyToTest).isTakeable())
+                return allGameObjects.getObjectByBody(bodyToTest);
+
         }
 
         return null;
     }
 
-
-
-
     //interface thread
-    public void draw(Canvas canvas, int frame) {
-        
+    public void draw(Canvas canvas, int frameWhy) {
+
         //вибираем картинку в зависимости от номера кадра
-        //добавится проверка на скольжение и рандомное моргание 
-        
-        int frameLeftPressed = Timer.getFrameFrom(wirtReverse);
+        int frame = Timer.getFrameFrom(movementStart); // вычисляем какой кадр с начала движения (глобальный кадр?)
 
-        int nowFrame = frameLeftPressed % 10;
-        BufferedImage wirt;
-
-        if ((go || goBack) && isHeroContactSomething) {
-            if (right)
-                wirt = wirtsRun[nowFrame - 1];
-            else //if (left)
-                wirt = wirtsRunReturn[nowFrame - 1];
-        } else {
-            if (right)
-                wirt = wirtsStay[nowFrame - 1];
-            else //if (left)
-                wirt = wirtsStayReturn[nowFrame - 1];
-        }
-
+        BufferedImage[] wirtsArray = getWirtsArray();
+        BufferedImage wirt = wirtsArray[frame % wirtsArray.length]; // делим на длинну массива, т е на число отрисованных повторяющихся кадров (локальный кадр?)
 
         canvas.drawImage(wirt, -W / 2, H / 2, W, H);
     }
+
+    private BufferedImage[] getWirtsArray(){
+
+        if ((go || goBack) && isHeroContactSomething) {
+            if (right)
+                return wirtsRun;
+            else //if (left)
+                return wirtsRunReturn;
+        } else {
+            if (!isHeroContactSomething){
+                if (right)
+                    return wirtsJump;
+                else //if (left)
+                    return wirtsJumpReturn;
+            } else {
+                if (right)
+                    return wirtsStay;
+                else //if (left)
+                    return wirtsStayReturn;
+            }
+        }
+    }
+
+
 
     //interface thread
     public void drawDebug(Canvas canvas) {
@@ -319,7 +289,7 @@ public class Hero extends GameObject {
     }
 
     //getters
-    /*public boolean getGo() {
+    public boolean getGo() {
         return go;
     }
 
@@ -351,11 +321,6 @@ public class Hero extends GameObject {
         return goPressed;
     }
 
-    public long getWirtReverse() {
-        return wirtReverse;
-    }*/
-
-
     public boolean getCarried() {
         return carried;
     }
@@ -368,9 +333,37 @@ public class Hero extends GameObject {
         return joint;
     }
 
+    public long getMovementStart() {
+        return movementStart;
+    }
 
 
-    //setters
+
+    public void setMovementStart(long movementStart) {
+        this.movementStart = movementStart;
+    }
+
+    public void kill(boolean death){
+        this.death = death;
+    }
+
+
+    //interface state
+
+    private boolean go = false;
+    private boolean goBack = false;
+    private boolean jump = false;
+
+    private boolean stopGo = false;
+    private boolean stopGoBack = false;
+
+    private boolean right = false;
+    private boolean left = true;
+
+    private boolean carried = false;
+
+    private long goPressed = 0;
+
     public void setGo(boolean newGo) {
         go = newGo;
     }
@@ -395,28 +388,9 @@ public class Hero extends GameObject {
         carried = newCarried;
     }
 
-    /*public void setRight(boolean right) {
-        right = right;
-    }
-
-    public void setLeft(boolean left) {
-        left = left;
-    }
-
-    public void setMove(boolean right) {
-        right = right;
-    }*/
-
     public void setGoPressed(long goPressed) {
-        goPressed = goPressed;
+        this.goPressed = goPressed;
     }
-
-    public void setWirtReverse(long wirtReverse) {
-        this.wirtReverse = wirtReverse;
-    }
-
-
-
 
 
 }

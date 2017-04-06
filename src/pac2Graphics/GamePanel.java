@@ -1,7 +1,13 @@
 package pac2Graphics;
 
 
+import org.dyn4j.collision.manifold.Manifold;
+import org.dyn4j.collision.narrowphase.Penetration;
+import org.dyn4j.dynamics.Body;
+import org.dyn4j.dynamics.BodyFixture;
+import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.World;
+import org.dyn4j.dynamics.contact.ContactConstraint;
 import org.dyn4j.dynamics.joint.WeldJoint;
 import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
@@ -31,11 +37,18 @@ public class GamePanel extends JPanel {
     private Hero hero;
     private Kolobok kolobok;
     private Tree tree;
+    private InvisibleObject spikes;
+
+    private AllWorldGameObjects allObjects = new AllWorldGameObjects();
+    private List<Vector2> saves = new ArrayList<>();
 
     public GamePanel() throws IOException {
         camera = new Camera();
         /*timer = new Timer();*/
         this.initializeWorld();
+
+        saves.add(new Vector2(20, 6));
+        saves.add(new Vector2(90, 6));
     }
 
     @Override
@@ -55,25 +68,48 @@ public class GamePanel extends JPanel {
         this.world = new World();
 
         loadFloor();
+        for (Floor floor: floors){
+            allObjects.addObject(floor);
+        }
 
         kolobok = new Kolobok(0.5);
-        kolobok.body.translate(21, 5); //TODO do not use the field 'body' directly
+        kolobok.body.translate(21, 6); //TODO do not use the field 'body' directly
         kolobok.body.applyForce(new Vector2(100.0, 0.0));
+        allObjects.addObject(kolobok);
         world.addBody(kolobok.getBody());
 
-        tree = new Tree();
+        tree = new Tree(1, 14);
+        tree.body.rotate(Math.PI/6);
+        tree.body.translate(64, 10);
+        allObjects.addObject(tree);
         world.addBody(tree.getBody());
 
-        //TODO пусть герой получает на вход список обектов List<GameObject>, от которых можно оттолкнуться
+        spikes = new InvisibleObject(5, 1);
+        spikes.body.translate(85, 6);
 
-        List<GameObject> l = new ArrayList<>(floors);
-        l.add(tree);
-        l.add(kolobok);
-        AllWorldGameObjects list = new AllWorldGameObjects (l);
+        allObjects.addObject(spikes);
+        world.addBody(spikes.getBody());
 
-        hero = new Hero(world, list);
-        hero.body.translate(20, 5);
+        hero = new Hero(world, allObjects);
+        hero.body.translate(75, 6); // было 20 и 6
         world.addBody(hero.getBody());
+
+
+
+        //прямо здесь создаем класс без имени, который переопределяет метод collided
+        /*listenCollisions(hero, kolobok, new CollidingAction() {
+            @Override
+            public void collided() {
+                System.out.println("kolobok and hero collided " + System.nanoTime());
+            }
+        });*/
+
+        /*listenCollisions(hero, kolobok, () -> System.out.println("kolobok and hero collided " + System.nanoTime()));
+        listenCollisions(hero, tree, () -> {
+            System.out.println("tree and hero collided " + System.nanoTime());
+        });*/
+
+        listenCollisions(hero, spikes, () -> hero.kill(true));
 
         /*WeldJoint joint = new WeldJoint(hero.body, kolobok.body, new Vector2(21, 5));
         world.addJoint(joint);*/
@@ -83,7 +119,7 @@ public class GamePanel extends JPanel {
     private void loadFloor() throws IOException {
         floors = new ArrayList<>();
         PixelCoords last = null;
-        for (int x = -1 ; x < 10; x++){
+        for (int x = 0 ; x < 10; x++){
             Floor f = new Floor(x, last);
             last = f.getLastPC();
             floors.add(f);
@@ -115,8 +151,32 @@ public class GamePanel extends JPanel {
 
         hero.move();
         camera.move(hero, elapsedTime);
-
         hero.processCarryButtonPress();
+
+        //hero.body.
+
+        /*world.addListener(new CollisionListener() {
+            @Override
+            public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
+                return true;
+            }
+
+            @Override
+            public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
+                System.out.println("collided " + body1 + " and " + body2);
+                return true;
+            }
+
+            @Override
+            public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
+                return true;
+            }
+
+            @Override
+            public boolean collision(ContactConstraint contactConstraint) {
+                return true;
+            }
+        });*/
 
         repaint();
         this.world.update(elapsedTime);
@@ -156,6 +216,14 @@ public class GamePanel extends JPanel {
             tree.drawDebug(canvas);
         }
 
+        canvas.transformBody(spikes.getBody());
+        /*spikes.draw(canvas, frame);*/
+        if (DEBUG_MODE){
+            spikes.drawDebug(canvas);
+        }
+
+
+
         canvas.kill();
 
         //рисуем текст дебаг
@@ -173,5 +241,31 @@ public class GamePanel extends JPanel {
 
     public void setDebug(String debug) {
         this.debug = debug;
+    }
+
+    private void listenCollisions(GameObject o1, GameObject o2, CollidingAction action) {
+        world.addListener(new CollisionListener() {
+            @Override
+            public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
+                return true;
+            }
+
+            @Override
+            public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
+                if (body1 == o1.body && body2 == o2.body || body2 == o1.body && body1 == o2.body)
+                    action.collided();
+                return true;
+            }
+
+            @Override
+            public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
+                return true;
+            }
+
+            @Override
+            public boolean collision(ContactConstraint contactConstraint) {
+                return true;
+            }
+        });
     }
 }

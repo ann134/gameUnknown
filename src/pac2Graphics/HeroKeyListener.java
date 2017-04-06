@@ -20,11 +20,11 @@ public class HeroKeyListener implements KeyListener {
     public void keyPressed(KeyEvent e) {
         key = e.getKeyCode();
 
-
         //идем вперед
-        if (key == 39) {
+        if (key == 39 && !hero.getGo()) {
             /*hero.setRight(true);
             hero.setLeft(false);*/
+            hero.setMovementStart(System.nanoTime());
             hero.setGoPressed(System.nanoTime());
 
             hero.setGo(true);
@@ -35,10 +35,10 @@ public class HeroKeyListener implements KeyListener {
         }
 
         //идем назад
-        if (key == 37) {
+        if (key == 37 && !hero.getGoBack()) {
             /*hero.setLeft(true);
             hero.setRight(false);*/
-            hero.setWirtReverse(System.nanoTime());
+            hero.setMovementStart(System.nanoTime());
 
             hero.setGoBack(true);
             hero.setGo(false);
@@ -48,13 +48,12 @@ public class HeroKeyListener implements KeyListener {
         }
 
         // прыжок
-        if (key == 32) {
+        if (key == 32 && !hero.getJump()) {
             hero.setJump(true);
         }
 
-
         // взять
-        if (key == 16) {
+        if (key == 16 && !hero.getCarried()) {
             hero.setCarried(true);
         }
 
