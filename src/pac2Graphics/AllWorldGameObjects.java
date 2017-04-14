@@ -10,7 +10,7 @@ import java.util.Map;
 public class AllWorldGameObjects {
 
     private Map<Body, GameObject> bodyToGameObject = new HashMap<>();
-    private List<GameObject> allWorldGameObjects = new ArrayList<>();
+    private ArrayList<GameObject> allWorldGameObjects = new ArrayList<>();
 
     /*public AllWorldGameObjects(List<GameObject> list){
         *//*allWorldGameObjects = list;*//*
@@ -29,4 +29,8 @@ public class AllWorldGameObjects {
         return  bodyToGameObject.get(body);
     }
 
+
+    public ArrayList<GameObject> getList(){
+        return allWorldGameObjects;
+    }
 }

@@ -7,25 +7,21 @@ import java.awt.event.KeyListener;
 public class HeroKeyListener implements KeyListener {
 
     private GamePanel p;
-    private Hero hero;
 
     public HeroKeyListener(GamePanel p) {
         this.p = p;
-        hero = p.getHero();
     }
 
-    double y = 0;
     private int key;
 
     public void keyPressed(KeyEvent e) {
+        Hero hero = p.getHero();
+
         key = e.getKeyCode();
 
         //идем вперед
         if (key == 39 && !hero.getGo()) {
-            /*hero.setRight(true);
-            hero.setLeft(false);*/
             hero.setMovementStart(System.nanoTime());
-            hero.setGoPressed(System.nanoTime());
 
             hero.setGo(true);
             hero.setGoBack(false);
@@ -36,8 +32,6 @@ public class HeroKeyListener implements KeyListener {
 
         //идем назад
         if (key == 37 && !hero.getGoBack()) {
-            /*hero.setLeft(true);
-            hero.setRight(false);*/
             hero.setMovementStart(System.nanoTime());
 
             hero.setGoBack(true);
@@ -64,6 +58,8 @@ public class HeroKeyListener implements KeyListener {
     }
 
     public void keyReleased(KeyEvent e) {
+        Hero hero = p.getHero();
+
         key = e.getKeyCode();
 
         //больше не идем вперед

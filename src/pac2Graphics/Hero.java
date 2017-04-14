@@ -1,6 +1,5 @@
 package pac2Graphics;
 
-import com.sun.org.apache.xpath.internal.SourceTree;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.World;
@@ -28,17 +27,17 @@ public class Hero extends GameObject {
     private BufferedImage[] wirtsRun = new BufferedImage[8];
     private BufferedImage[] wirtsRunReturn = new BufferedImage[8];
 
-    private BufferedImage[] wirtsJump = new BufferedImage[1];
-    private BufferedImage[] wirtsJumpReturn = new BufferedImage[1];
+    private BufferedImage[] wirtsJump = new BufferedImage[8];
+    private BufferedImage[] wirtsJumpReturn = new BufferedImage[8];
+
+    private BufferedImage[] wirtsDead = new BufferedImage[1];
+    private BufferedImage[] wirtsDeadReturn = new BufferedImage[1];
 
     private AllWorldGameObjects allGameObjects;
     private World world;
 
-
-    private  boolean death = false;
-
     private long movementStart;
-
+    private boolean dead = false;
 
     //TODO these fields are set in the Game Loop thread, and are read in the UI thread
     private boolean isHeroContactSomething = false;
@@ -46,8 +45,19 @@ public class Hero extends GameObject {
     private GameObject carriedObject = null;
     private WeldJoint joint = null;
     private boolean carriedObjectIsToTheRight = false;
-    //нужен метод setCarriedObject 1) отвязывает старый объект, если он был 2) привязывает новый. И нужен метод removeCarriedObject - отвязывеает объект
-    //setCarriedObject и removeCarriedObject вызываются при нажатии на кнопку взятия объектка.
+
+
+    //interface state
+    private boolean carried = false;
+
+    private boolean right = true;
+
+    private boolean go = false;
+    private boolean goBack = false;
+    private boolean jump = false;
+
+    private boolean stopGo = false;
+    private boolean stopGoBack = false;
 
 
     public Hero(World world, AllWorldGameObjects allObjects) throws IOException {
@@ -73,14 +83,24 @@ public class Hero extends GameObject {
             wirtsRunReturn[i - 1] = b;
         }
         for (int i = 1; i < wirtsJump.length + 1; i++) {
-            String s = "hero/wirtJump.png";
+            String s = "hero/wirtJump" + "0" + i + ".png";
             BufferedImage b = ImageIO.read(new File(s));
             wirtsJump[i - 1] = b;
         }
         for (int i = 1; i < wirtsJumpReturn.length + 1; i++) {
-            String s = "hero/wirtJumpReverse.png";
+            String s = "hero/wirtJump" + "1" + i + ".png";
             BufferedImage b = ImageIO.read(new File(s));
             wirtsJumpReturn[i - 1] = b;
+        }
+        for (int i = 1; i < wirtsDead.length + 1; i++) {
+            String s = "hero/wirtDead" + ".png";
+            BufferedImage b = ImageIO.read(new File(s));
+            wirtsDead[i - 1] = b;
+        }
+        for (int i = 1; i < wirtsDeadReturn.length + 1; i++) {
+            String s = "hero/wirtDeadReturn" + ".png";
+            BufferedImage b = ImageIO.read(new File(s));
+            wirtsDeadReturn[i - 1] = b;
         }
 
 
@@ -104,7 +124,6 @@ public class Hero extends GameObject {
         //идем вперед
         if (go) {
             right = true;
-            left = false;
             if (linearVelocity.x < 4) {  // тут было 3
                 if (isHeroContactSomething())
                     body.applyImpulse(new Vector2(2, 0));
@@ -116,7 +135,6 @@ public class Hero extends GameObject {
         //идем назад
         if (goBack) {
             right = false;
-            left = true;
             if (-4 < linearVelocity.x) {  // тут было -3
                 if (isHeroContactSomething())
                     body.applyImpulse(new Vector2(-2, 0));
@@ -241,19 +259,26 @@ public class Hero extends GameObject {
         return null;
     }
 
+
     //interface thread
     public void draw(Canvas canvas, int frameWhy) {
 
-        //вибираем картинку в зависимости от номера кадра
         int frame = Timer.getFrameFrom(movementStart); // вычисляем какой кадр с начала движения (глобальный кадр?)
 
-        BufferedImage[] wirtsArray = getWirtsArray();
+        BufferedImage[] wirtsArray = getWirtsArray(); //вибираем нужный массив
         BufferedImage wirt = wirtsArray[frame % wirtsArray.length]; // делим на длинну массива, т е на число отрисованных повторяющихся кадров (локальный кадр?)
 
         canvas.drawImage(wirt, -W / 2, H / 2, W, H);
     }
 
     private BufferedImage[] getWirtsArray(){
+        if (dead) {
+            if (right)
+                return wirtsDead;
+            else //if (left)
+                return wirtsDeadReturn;
+        }
+
 
         if ((go || goBack) && isHeroContactSomething) {
             if (right)
@@ -276,7 +301,6 @@ public class Hero extends GameObject {
     }
 
 
-
     //interface thread
     public void drawDebug(Canvas canvas) {
         canvas.setColor(new Color(46, 133, 24));
@@ -287,6 +311,9 @@ public class Hero extends GameObject {
         canvas.drawLine(-W / 2, H / 2, -W / 2, -H / 2);
         canvas.drawLine(W / 2, H / 2, W / 2, -H / 2);
     }
+
+
+
 
     //getters
     public boolean getGo() {
@@ -301,68 +328,36 @@ public class Hero extends GameObject {
         return jump;
     }
 
-    public boolean getStopGo() {
-        return stopGo;
-    }
-
-    public boolean getStopGoBack() {
-        return stopGoBack;
-    }
-
-    public boolean getRight() {
-        return right;
-    }
-
-    public boolean getLeft() {
-        return left;
-    }
-
-    public long getGoPressed() {
-        return goPressed;
-    }
-
     public boolean getCarried() {
         return carried;
     }
 
-    public GameObject getCarriedObject() {
+    /*public GameObject getCarriedObject() {
         return carriedObject;
     }
 
     public WeldJoint getJoint(){
         return joint;
-    }
+    }*/
 
     public long getMovementStart() {
         return movementStart;
     }
 
+    public boolean alive() {
+        return !dead;
+    }
 
 
+
+    //setters
     public void setMovementStart(long movementStart) {
         this.movementStart = movementStart;
     }
 
     public void kill(boolean death){
-        this.death = death;
+        this.dead = death;
     }
-
-
-    //interface state
-
-    private boolean go = false;
-    private boolean goBack = false;
-    private boolean jump = false;
-
-    private boolean stopGo = false;
-    private boolean stopGoBack = false;
-
-    private boolean right = false;
-    private boolean left = true;
-
-    private boolean carried = false;
-
-    private long goPressed = 0;
 
     public void setGo(boolean newGo) {
         go = newGo;
@@ -387,10 +382,4 @@ public class Hero extends GameObject {
     public void setCarried(boolean newCarried){
         carried = newCarried;
     }
-
-    public void setGoPressed(long goPressed) {
-        this.goPressed = goPressed;
-    }
-
-
 }
