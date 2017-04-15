@@ -31,7 +31,7 @@ public class Camera {
     public final static int HERO_POSITION_H = 5; //от низа экрана до героя
 
     public Camera() throws IOException {
-        black = ImageIO.read(new File("bg/black.jpg"));
+        black = ImageIO.read(new File("images/bg/black.jpg"));
     }
 
     public List<BgCoords> getVisibleBackgrounds() {
@@ -73,7 +73,7 @@ public class Camera {
 
     private BufferedImage loadBgImage(BgCoords bgC) {
         try {
-            String s = "bg/bg_" + bgC.x + "_" + bgC.y + ".jpg";
+            String s = "images/bg/bg_" + bgC.x + "_" + bgC.y + ".jpg";
             return ImageIO.read(new File(s));
         } catch (Exception e) {
             try {

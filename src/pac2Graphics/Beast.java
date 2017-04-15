@@ -17,14 +17,14 @@ public class Beast extends GameObject {
     public final static double W = 8;
     public final static double H = 10;
 
-    private BufferedImage[] beasts = new BufferedImage[1];
+    private BufferedImage[] beasts = new BufferedImage[10];
 
     private long movementStart;
 
     public Beast () throws IOException {
 
         for (int i = 1; i < beasts.length + 1; i++) {
-            String s = "beast/beast" + ".png";
+            String s = "images/beast/beast" + i +".png";
             BufferedImage b = ImageIO.read(new File(s));
             beasts[i - 1] = b;
         }

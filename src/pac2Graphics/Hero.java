@@ -33,6 +33,8 @@ public class Hero extends GameObject {
     private BufferedImage[] wirtsDead = new BufferedImage[1];
     private BufferedImage[] wirtsDeadReturn = new BufferedImage[1];
 
+    private BufferedImage[] wirtsHand = new BufferedImage[2];
+
     private AllWorldGameObjects allGameObjects;
     private World world;
 
@@ -63,46 +65,51 @@ public class Hero extends GameObject {
     public Hero(World world, AllWorldGameObjects allObjects) throws IOException {
 
         for (int i = 1; i < wirtsStay.length + 1; i++) {
-            String s = "hero/wirtStay" + "0" + i + ".png";
+            String s = "images/hero/wirtStay" + "0" + i + ".png";
             BufferedImage b = ImageIO.read(new File(s));
             wirtsStay[i - 1] = b;
         }
         for (int i = 1; i < wirtsStayReturn.length + 1; i++) {
-            String s = "hero/wirtStay" + "1" + i + ".png";
+            String s = "images/hero/wirtStay" + "1" + i + ".png";
             BufferedImage b = ImageIO.read(new File(s));
             wirtsStayReturn[i - 1] = b;
         }
         for (int i = 1; i < wirtsRun.length + 1; i++) {
-            String s = "hero/wirtRun" + "0" + i + ".png";
+            String s = "images/hero/wirtRun" + "0" + i + ".png";
             BufferedImage b = ImageIO.read(new File(s));
             wirtsRun[i - 1] = b;
         }
         for (int i = 1; i < wirtsRunReturn.length + 1; i++) {
-            String s = "hero/wirtRun" + "1" + i + ".png";
+            String s = "images/hero/wirtRun" + "1" + i + ".png";
             BufferedImage b = ImageIO.read(new File(s));
             wirtsRunReturn[i - 1] = b;
         }
         for (int i = 1; i < wirtsJump.length + 1; i++) {
-            String s = "hero/wirtJump" + "0" + i + ".png";
+            String s = "images/hero/wirtJump" + "0" + i + ".png";
             BufferedImage b = ImageIO.read(new File(s));
             wirtsJump[i - 1] = b;
         }
         for (int i = 1; i < wirtsJumpReturn.length + 1; i++) {
-            String s = "hero/wirtJump" + "1" + i + ".png";
+            String s = "images/hero/wirtJump" + "1" + i + ".png";
             BufferedImage b = ImageIO.read(new File(s));
             wirtsJumpReturn[i - 1] = b;
         }
         for (int i = 1; i < wirtsDead.length + 1; i++) {
-            String s = "hero/wirtDead" + ".png";
+            String s = "images/hero/wirtDead" + ".png";
             BufferedImage b = ImageIO.read(new File(s));
             wirtsDead[i - 1] = b;
         }
         for (int i = 1; i < wirtsDeadReturn.length + 1; i++) {
-            String s = "hero/wirtDeadReturn" + ".png";
+            String s = "images/hero/wirtDeadReturn" + ".png";
             BufferedImage b = ImageIO.read(new File(s));
             wirtsDeadReturn[i - 1] = b;
         }
 
+        for (int i = 1; i < wirtsHand.length + 1; i++) {
+            String s = "images/hero/hand" + i + ".png";
+            BufferedImage b = ImageIO.read(new File(s));
+            wirtsHand[i - 1] = b;
+        }
 
         this.world = world;
         this.allGameObjects = allObjects;
@@ -197,9 +204,6 @@ public class Hero extends GameObject {
         return false;
     }
 
-    //TODO почему, если держать шарик под собой, то герой не может подпрыгнуть
-    //TODO можно ли как-то при взятии объекта переносить его в область рук
-    //TODO move this inside Hero (make Hero link to world, пусть, например, все GameObject имеют ссылку на world)
     public void processCarryButtonPress() {
         if (getCarried()) {
             if (carriedObject == null) {
@@ -219,23 +223,26 @@ public class Hero extends GameObject {
         if (carriedObject != null) {
             carriedObject.body.setTransform(new Transform());
 
-            //TODO fix ?! почему при разворачиваении объект не переносится
+            Vector2 heroCarryPoint;
+            Vector2 objectCarryPoint;
+
             if (right){
                 carriedObjectIsToTheRight = true;
-                System.out.println("putting to the right");
-                Vector2 carriedPoint = body.getWorldPoint(new Vector2(W/2, 0.1));
-                carriedObject.body.translate(new Vector2(carriedPoint.x - carriedObject.getCarriedPoint().x + 0.1, carriedPoint.y - carriedObject.getCarriedPoint().y));
+                heroCarryPoint = body.getWorldPoint(new Vector2(W/2 , 0.1));
+                objectCarryPoint = carriedObject.getCarriedLeftPoint();//new Vector2(-1.25/4 , 0.5);
             } else {
                 carriedObjectIsToTheRight = false;
-                System.out.println("putting to the left");
-                Vector2 carriedPoint = body.getWorldPoint(new Vector2(-W/2, 0.1));
-                carriedObject.body.translate(new Vector2(carriedPoint.x + carriedObject.getCarriedPoint().x - 0.1, carriedPoint.y - carriedObject.getCarriedPoint().y));
+                heroCarryPoint = body.getWorldPoint(new Vector2(-W/2, 0.1));
+                objectCarryPoint = carriedObject.getCarriedRightPoint();//new Vector2(1.25/4 , 0.5);
             }
 
-            if (joint == null) {
-                joint = new WeldJoint(body, carriedObject.body, new Vector2(0, 0));
-                world.addJoint(joint);
-            }
+            if (joint != null)
+                world.removeJoint(joint);
+
+            carriedObject.body.translate(new Vector2(heroCarryPoint.x - objectCarryPoint.x, heroCarryPoint.y - objectCarryPoint.y));
+
+            joint = new WeldJoint(body, carriedObject.body, heroCarryPoint);
+            world.addJoint(joint);
         }
     }
 
@@ -263,6 +270,14 @@ public class Hero extends GameObject {
     //interface thread
     public void draw(Canvas canvas, int frameWhy) {
 
+        if (carriedObject != null){
+            if (right){
+                canvas.drawImage(wirtsHand[1], W / 2 - 0.45, 0.25, 0.7, 0.35);
+            } else {
+                canvas.drawImage(wirtsHand[0], -W / 2 - 0.2, 0.25, 0.7, 0.35);
+            }
+        }
+
         int frame = Timer.getFrameFrom(movementStart); // вычисляем какой кадр с начала движения (глобальный кадр?)
 
         BufferedImage[] wirtsArray = getWirtsArray(); //вибираем нужный массив
@@ -278,7 +293,6 @@ public class Hero extends GameObject {
             else //if (left)
                 return wirtsDeadReturn;
         }
-
 
         if ((go || goBack) && isHeroContactSomething) {
             if (right)
@@ -331,14 +345,6 @@ public class Hero extends GameObject {
     public boolean getCarried() {
         return carried;
     }
-
-    /*public GameObject getCarriedObject() {
-        return carriedObject;
-    }
-
-    public WeldJoint getJoint(){
-        return joint;
-    }*/
 
     public long getMovementStart() {
         return movementStart;

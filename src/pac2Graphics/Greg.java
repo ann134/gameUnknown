@@ -23,7 +23,7 @@ public class Greg extends GameObject {
     public Greg () throws IOException {
 
         for (int i = 1; i < gregs.length + 1; i++) {
-            String s = "greg/greg" + ".png";
+            String s = "images/greg/greg" + ".png";
             BufferedImage b = ImageIO.read(new File(s));
             gregs[i - 1] = b;
         }

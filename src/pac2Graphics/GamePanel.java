@@ -41,6 +41,7 @@ public class GamePanel extends JPanel {
     private Hero hero;
     private Greg greg;
     private Beast beast;
+    private Light light;
 
 
     private AllWorldGameObjects allObjects;
@@ -92,6 +93,10 @@ public class GamePanel extends JPanel {
 
         beast = addGameObject(new Beast(), 268, 10);
         hero = addGameObject(new Hero(world, allObjects), heroX, heroY);
+
+        light = addGameObject(new Light(), 255, 6);
+
+
 
 
         //прямо здесь создаем класс без имени, который переопределяет метод collided
@@ -261,3 +266,9 @@ public class GamePanel extends JPanel {
         return hero;
     }
 }
+
+//TODO на весь экран
+//TODO Проверить разные размеры экранов, для этого отключить режим всего экрана и задать разные размеры окну
+//TODO запуск jar или лучше exe файла
+//TODO один каталог с картинками, в нем подпапки, которые сейчас
+//TODO сделать физическое тело героя уже - ближе к форме тела

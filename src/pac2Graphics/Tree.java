@@ -17,10 +17,11 @@ public class Tree extends GameObject {
     private double h;
 
     public Tree(double w, double h) throws IOException {
+
         this.w = w;
         this.h = h;
 
-        tre = ImageIO.read(new File("tree2.png"));
+        tre = ImageIO.read(new File("images/tree2.png"));
 
         body = new Body();
         org.dyn4j.geometry.Rectangle r = new org.dyn4j.geometry.Rectangle(w, h);

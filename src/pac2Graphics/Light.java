@@ -4,6 +4,7 @@ import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Rectangle;
+import org.dyn4j.geometry.Vector2;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -11,31 +12,36 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-public class Branches extends GameObject {
+public class Light extends GameObject {
 
-    public final static double W = 3;
-    public final static double H = 3;
+    //для физического тела
+    public final static double W = 1.25 / 2;
+    public final static double H = 1.25 / 2 + 0.25;
 
-    private BufferedImage[] branchesArray = new BufferedImage[1];
+    //для рисовашек
+    public final static double w = W * 2;
+    public final static double h = H * 2 - 0.5;
+
+    private BufferedImage[] lights = new BufferedImage[10];
 
     private long movementStart;
 
-    public Branches () throws IOException {
+    public Light () throws IOException {
+        takeable = true;
 
-        for (int i = 1; i < branchesArray.length + 1; i++) {
-            String s = "images/branches/branches" + ".png";
+        for (int i = 1; i < lights.length + 1; i++) {
+            String s = "images/light/light" + i + ".png";
             BufferedImage b = ImageIO.read(new File(s));
-            branchesArray[i - 1] = b;
+            lights[i - 1] = b;
         }
 
         body = new Body();
-        Rectangle branchesShape = new Rectangle(W, H);
-        BodyFixture bf = new BodyFixture(branchesShape);
-        bf.setSensor(true);
-        body.addFixture(bf);
+        Rectangle lightShape = new Rectangle(W, H);
+        body.addFixture(lightShape);
 
-        body.setMass(MassType.INFINITE);
+        body.setMass(MassType.NORMAL);
     }
+
 
     public void draw(Canvas canvas, int frameWhy) {
 
@@ -43,11 +49,10 @@ public class Branches extends GameObject {
 
         //BufferedImage[] wirtsArray = getWirtsArray(); //вибираем нужный массив
 
-        BufferedImage branches = branchesArray[frame % branchesArray.length]; // делим на длинну массива, т е на число отрисованных повторяющихся кадров (локальный кадр?)
+        BufferedImage greg = lights[frame % lights.length]; // делим на длинну массива, т е на число отрисованных повторяющихся кадров (локальный кадр?)
 
-        canvas.drawImage(branches, -W / 2, H / 2, W, H);
+        canvas.drawImage(greg, -w / 2, h / 2, w, h);
     }
-
 
 
     public void drawDebug(Canvas canvas) {
@@ -58,6 +63,14 @@ public class Branches extends GameObject {
 
         canvas.drawLine(-W / 2, H / 2, -W / 2, -H / 2);
         canvas.drawLine(W / 2, H / 2, W / 2, -H / 2);
+    }
+
+    public Vector2 getCarriedRightPoint() {
+        return new Vector2(W/2, 0.5);
+    }
+
+    public Vector2 getCarriedLeftPoint() {
+        return new Vector2(-W/2, 0.5);
     }
 
     public long getMovementStart() {

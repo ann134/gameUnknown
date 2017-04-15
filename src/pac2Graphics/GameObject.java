@@ -9,8 +9,6 @@ public abstract class GameObject {
 
     protected boolean takeable = false;
 
-    //TODO add field можно или нельзя взять объект
-
     public abstract void draw(Canvas canvas, int frame);
 
     public void drawDebug(Canvas canvas) {
@@ -25,7 +23,11 @@ public abstract class GameObject {
         return takeable;
     }
 
-    public Vector2 getCarriedPoint(){
+    public Vector2 getCarriedRightPoint() {
+        return new Vector2(0, 0);
+    }
+
+    public Vector2 getCarriedLeftPoint() {
         return new Vector2(0, 0);
     }
 }

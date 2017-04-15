@@ -20,7 +20,7 @@ public class Kolobok extends GameObject {
         this.radius = radius;
         takeable = true;
 
-        smile = ImageIO.read(new File("smile.png"));
+        smile = ImageIO.read(new File("images/smile.png"));
 
         Circle cirShape = new Circle(radius);
         body = new Body();
@@ -36,7 +36,12 @@ public class Kolobok extends GameObject {
     }
 
 
-    public Vector2 getCarriedPoint(){
+
+    public Vector2 getCarriedRightPoint() {
+        return new Vector2(radius, 0);
+    }
+
+    public Vector2 getCarriedLeftPoint() {
         return new Vector2(-radius, 0);
     }
 }

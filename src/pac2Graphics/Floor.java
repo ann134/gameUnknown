@@ -26,10 +26,10 @@ public class Floor extends GameObject {
         //грузим картинку
         BufferedImage floorImage;
         try {
-            String s = "bgFloor/bgFloor_" + bgx + ".png";
+            String s = "images/bgFloor/bgFloor_" + bgx + ".png";
             floorImage = ImageIO.read(new File(s));
         } catch (Exception e) {
-            floorImage = ImageIO.read(new File("bgFloor/bgFloor.png"));
+            floorImage = ImageIO.read(new File("images/bgFloor/bgFloor.png"));
         }
 
         //читаем картинку
