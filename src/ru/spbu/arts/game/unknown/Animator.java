@@ -1,6 +1,9 @@
 package ru.spbu.arts.game.unknown;
 
+import com.sun.org.apache.xerces.internal.impl.dv.xs.AnyURIDV;
+
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 public class Animator {
 
@@ -13,14 +16,21 @@ public class Animator {
     }
 
     public BufferedImage getCurrentFrame() {
-
         int frame = Timer.getFrameFrom(animationStart);
+        List<BufferedImage> images = currentAnimation.getImages();
 
-        if (frame >= currentAnimation.getImages().size()){
+        while (frame >= images.size()) {
+            frame = frame - images.size();
+            animationStart = (long) (animationStart + images.size() * Timer.FRAME_TIME);
+
+            Runnable nextAction = currentAnimation.getNextAction();
+            if (nextAction != null)
+                nextAction.run();
+
             currentAnimation = currentAnimation.getNext();
-            frame = frame % currentAnimation.getImages().size();
+            images = currentAnimation.getImages();
         }
 
-        return currentAnimation.getImages().get(frame);
+        return images.get(frame);
     }
 }

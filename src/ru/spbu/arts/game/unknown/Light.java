@@ -40,7 +40,7 @@ public class Light extends GameObject {
 
     private long movementStart;
 
-    public Light () throws IOException {
+    public Light() throws IOException {
         takeable = true;
 
         for (int i = 1; i < 10; i++) {
@@ -61,6 +61,10 @@ public class Light extends GameObject {
         afterDeath = new Animation(lightsAfterDeath);
 
         death.setNext(afterDeath);
+        death.setNextAction(() -> {
+            kill();
+            ((Beast)allWorldGameObjects.getByName("beast")).startDeath();
+        });
         animator.start(wind);
 
         body = new Body();

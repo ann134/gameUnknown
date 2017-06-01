@@ -1,7 +1,7 @@
 package ru.spbu.arts.game.unknown;
 
 import org.dyn4j.dynamics.Body;
-import org.dyn4j.dynamics.BodyFixture;
+import org.dyn4j.geometry.Circle;
 import org.dyn4j.geometry.MassType;
 
 import javax.imageio.ImageIO;
@@ -10,40 +10,34 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-public class Tree extends GameObject {
+public class Cart extends GameObject{
 
-    private BufferedImage tre;
-
-    // для физического тела
+    private BufferedImage cart;
     private double w;
     private double h;
 
-    // для рисовашек
-    private double W;
-    private double H;
+    private double radius;
 
-    public Tree(double w, double h) throws IOException {
-        this.W = w;
-        this.H = h;
 
-        this.w = W/4;
-        this.h = H;
+    public Cart (double w, double h) throws IOException {
 
-        tre = ImageIO.read(new File("images/tree.png"));
+        this.w = w;
+        this.h = h;
+
+        cart = ImageIO.read(new File("images/cart/cart.png"));
 
         body = new Body();
-        org.dyn4j.geometry.Rectangle r = new org.dyn4j.geometry.Rectangle(this.w, this.h);
+        org.dyn4j.geometry.Rectangle r = new org.dyn4j.geometry.Rectangle(w, h);
 //        body.addFixture(heroShape, BodyFixture.DEFAULT_DENSITY, 10, BodyFixture.DEFAULT_RESTITUTION);
 
-        body.addFixture(r, 2, BodyFixture.DEFAULT_FRICTION, 0.2);
-
-        /*r.translate();*/
+        body.addFixture(r, 4);
         body.setMass(MassType.NORMAL);
+
 
     }
 
     public void draw(ru.spbu.arts.game.unknown.Canvas canvas, int frame) {
-        canvas.drawImage(tre, -W / 2.0, H / 2.0, W, H);
+        canvas.drawImage(cart, -w / 2.0, h / 2.0, w, h);
     }
 
     public void drawDebug(ru.spbu.arts.game.unknown.Canvas canvas){
@@ -55,4 +49,6 @@ public class Tree extends GameObject {
         canvas.drawLine(-w / 2, h / 2, -w / 2, -h / 2);
         canvas.drawLine(w / 2, h / 2, w / 2, -h / 2);
     }
+
+
 }

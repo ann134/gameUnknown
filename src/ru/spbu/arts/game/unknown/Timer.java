@@ -2,6 +2,7 @@ package ru.spbu.arts.game.unknown;
 
 public class Timer {
     public static final int FRAME_RATE = 7;
+    public static final double FRAME_TIME = GamePanel.NANO_TO_BASE / FRAME_RATE;
 
     private static long start;
 

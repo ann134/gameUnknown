@@ -8,23 +8,21 @@ import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.dynamics.contact.ContactConstraint;
+import org.dyn4j.dynamics.joint.RevoluteJoint;
+import org.dyn4j.dynamics.joint.WheelJoint;
+import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Vector2;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
 public class GamePanel extends JPanel {
 
-    //TODO головоломка: падающее дерево
-    //TODO указывать положение объектов с помощью файлов. Аналогично файлам для пола
-
     private static final boolean DEBUG_MODE = false;
+    private static final int START_POSITION = 0;
     private String debug = "hello";
 
     public static final double NANO_TO_BASE = 1.0e9;
@@ -37,35 +35,51 @@ public class GamePanel extends JPanel {
     private List<Floor> floors;
 
     private Pumpkin pumpkin;
+    private Stone stone;
+
+    private Stump stump;
     private Tree tree;
+
     private InvisibleObject spikes;
+    private InvisibleObject spikes2;
+    private InvisibleObject beforeStone;
+    private InvisibleObject stopStone;
+
+    private Cart cart;
+    private CartWheel wheel1;
+    private CartWheel wheel2;
+
+    private SecondFloor secondFloor;
+
     private Branches branches;
 
-    private Hero hero;
     private Greg greg;
     private Beast beast;
     private Light light;
 
+    private Hero hero;
+
+    private Text text;
 
     private AllWorldGameObjects allObjects;
     private List<Vector2> saves = new ArrayList<>();
 
-    private boolean gameEND = false;
-    BufferedImage end;
+    int stoneMass = 0;
+    int stoneKills = 1;
+
+    public static boolean gameEND = false;
 
     public GamePanel() throws IOException {
-        end = ImageIO.read(new File("images/end.png"));
-
         camera = new Camera();
 
         saves.add(new Vector2(20, 6)); //0 начало
         saves.add(new Vector2(80, 6)); //1 перед ямой
-        saves.add(new Vector2(250, 6)); //2 в деревне
-        saves.add(new Vector2(Camera.BG_W * 10, 20)); //3 на горе перед ямой
-        saves.add(new Vector2(250 + Camera.BG_W * 8, 6)); //4 конец
+        saves.add(new Vector2(121, 3)); //2 перед камнем
+        saves.add(new Vector2(250 + Camera.BG_W * 2, 6)); //3 в деревне
+        saves.add(new Vector2(Camera.BG_W * 10 + Camera.BG_W * 2, 20)); //4 на горе перед ямой
+        saves.add(new Vector2(250 + Camera.BG_W * 8, 6)); //5 конец
 
-
-        this.initializeWorld(saves.get(4).x, saves.get(4).y);
+        this.initializeWorld(saves.get(START_POSITION).x, saves.get(START_POSITION).y);
     }
 
     @Override
@@ -87,35 +101,55 @@ public class GamePanel extends JPanel {
 
         loadFloor();
         for (Floor floor : floors) {
-            allObjects.addObject(floor);
+            allObjects.addObject(floor, null);
         }
 
-        pumpkin = addGameObject(new Pumpkin(1), 200, 6);
+        pumpkin = addGameObject(new Pumpkin(1), 200 + Camera.BG_W * 2, 6);
         //pumpkin.body.applyForce(new Vector2(100.0, 0.0));
 
-        tree = addGameObject(new Tree(1, 14), 262 + Camera.BG_W * 3, 6);
+        stone = addGameObject(new Stone(3), 167, 9);
+
+        tree = addGameObject(new Tree(1, 14), 463.5 - Camera.BG_W, 13.5 + 7);
+        stump = addGameObject(new Stump(1, 1.5), 463.5 - Camera.BG_W, 13);
         //tree.body.rotate(Math.PI / 6);
+        RevoluteJoint rv = new RevoluteJoint(stump.body, tree.body, new Vector2(463.5 - Camera.BG_W, 13.5));
+        world.addJoint(rv);
+
 
         spikes = addGameObject(new InvisibleObject(7, 1.5), 85.5, 2);
+        spikes2 = addGameObject(new InvisibleObject(7, 2), 470  - Camera.BG_W, 3);
+        beforeStone = addGameObject(new InvisibleObject(2, 2), 124, 2);
+        stopStone = addGameObject(new InvisibleObject(2, 2), 112, 4);
 
 
+        //TODO move to cart, use names to get wheels
+        // ТЕЛЕГА
+        Vector2 cartCenter = new Vector2(370 - Camera.BG_W, 5.4);
+        Vector2 wheelCenter1 = new Vector2(cartCenter.x - 1.5, cartCenter.y - 1.4);
+        Vector2 wheelCenter2 = new Vector2(cartCenter.x + 1.5, cartCenter.y - 1.4);
+
+        cart = addGameObject(new Cart(5.5, 2), cartCenter.x, cartCenter.y);
+        wheel1 = addGameObject(new CartWheel(1), wheelCenter1.x, wheelCenter1.y);
+        wheel2 = addGameObject(new CartWheel(1), wheelCenter2.x, wheelCenter2.y);
+
+        WheelJoint joint = new WheelJoint(cart.body, wheel1.body, wheelCenter1, wheelCenter1);
+        world.addJoint(joint);
+        WheelJoint joint2 = new WheelJoint(cart.body, wheel2.body, wheelCenter2, wheelCenter2);
+        world.addJoint(joint2);
+
+        secondFloor = addGameObject(new SecondFloor(28, 0.5), 403.5  - Camera.BG_W, 6.5);
 
         greg = addGameObject(new Greg(), 262 + Camera.BG_W * 8, 6);
-        branches = addGameObject(new Branches(), 262 + Camera.BG_W * 8, 5.7);
-        beast = addGameObject(new Beast(), 268 + Camera.BG_W * 8, 10);
+        branches = addGameObject(new Branches(), "branches", 262 + Camera.BG_W * 8, 5.7);
+        beast = addGameObject(new Beast(), "beast", 268 + Camera.BG_W * 8, 10);
 
         hero = addGameObject(new Hero(world, allObjects), heroX, heroY);
 
         light = addGameObject(new Light(), 255 + Camera.BG_W * 8, 6);
 
 
-        listenCollisions(hero, spikes, () -> {
-                    if (hero.alive()) {
-                        hero.kill(true);
-                        hero.setMovementStart(System.nanoTime());
-                    }
-                }
-        );
+        text = addGameObject(new Text(), 542, 15);
+
 
 
         //прямо здесь создаем класс без имени, который переопределяет метод collided
@@ -138,22 +172,62 @@ public class GamePanel extends JPanel {
                 }
         );
 
-        listenCollisions(hero, greg, () -> {
-                    if (!light.alive()) {
-                        gameEND = true;
-
+        listenCollisions(hero, spikes2, () -> {
+                    if (hero.alive()) {
+                        hero.kill(true);
+                        hero.setMovementStart(System.nanoTime());
                     }
                 }
         );
 
-        /*WeldJoint joint = new WeldJoint(hero.body, kolobok.body, new Vector2(21, 5));
-        world.addJoint(joint);*/
-//        world.removeJoint(joint);
+
+        listenCollisions(hero, beforeStone, () -> {
+                    if (stoneMass == 0){
+                        stoneMass = 1;
+                    }
+                }
+        );
+
+        listenCollisions(stone, stopStone, () -> {
+                        stoneKills = 0;
+                }
+        );
+
+        listenCollisions(hero, stone, () -> {
+                    //System.out.println("mgn = " + stone.body.getLinearVelocity().getMagnitude());
+                    if (hero.alive() && stoneKills == 1) {
+                        hero.kill(true);
+                        hero.setMovementStart(System.nanoTime());
+                        stoneMass = 0;
+                        stoneKills = 1;
+                    }
+                }
+        );
+
+
+
+        listenCollisions(hero, greg, () -> {
+                    if (!light.alive()) {
+                        gameEND = true;
+                        showGameOver();
+                    }
+                }
+        );
+    }
+
+    private void showGameOver() {
+
     }
 
     private <T extends GameObject> T addGameObject(T o, double x, double y) throws IOException {
+        return addGameObject(o, null, x, y);
+    }
+
+    private <T extends GameObject> T addGameObject(T o, String name, double x, double y) throws IOException {
+        o.setAllWorldGameObjects(allObjects);
+
         o.getBody().translate(x, y);
-        allObjects.addObject(o);
+        allObjects.addObject(o, name);
         world.addBody(o.getBody());
         return o;
     }
@@ -161,7 +235,7 @@ public class GamePanel extends JPanel {
     private void loadFloor() throws IOException {
         floors = new ArrayList<>();
         PixelCoords last = null;
-        for (int x = 0; x < 20; x++) {
+        for (int x = 0; x < 17; x++) {
             Floor f = new Floor(x, last);
             last = f.getLastPC();
             floors.add(f);
@@ -222,12 +296,14 @@ public class GamePanel extends JPanel {
         this.last = time;
         double elapsedTime = diff / NANO_TO_BASE; //сколько секунд прошло с прошлого раза
 
-        if (!gameEND){
+        if (!gameEND) {
 
             if (hero.alive()) {
                 hero.move();
                 hero.processCarryButtonPress();
             } else {
+                hero.getBody().setMassType(MassType.NORMAL);
+
                 if (time - hero.getMovementStart() > 2e9) {
                     Vector2 respawnPoint = getRespawnPoint();
                     initializeWorld(respawnPoint.x, respawnPoint.y);
@@ -236,8 +312,11 @@ public class GamePanel extends JPanel {
 
             camera.move(hero, elapsedTime);
 
-        } else {
-
+            if (stoneMass == 1){
+                stone.getBody().setMassType(MassType.NORMAL);
+                stone.getBody().setLinearDamping(0.05);
+                stoneMass = 2;
+            }
         }
 
         debug = (int) hero.body.getWorldCenter().x + ", " + (int) hero.body.getWorldCenter().y;
@@ -264,9 +343,7 @@ public class GamePanel extends JPanel {
     }
 
 
-
-    private void render(Graphics2D g){
-
+    private void render(Graphics2D g) {
         //определяем время, прошедшее с момента запуска программы, превращаем его в номер кадра.
         // номер кадра передается как параметр draw() у всех GameObject
         int frame = Timer.getFrameFrom(Timer.getStart());
@@ -276,7 +353,7 @@ public class GamePanel extends JPanel {
         camera.drawBackground(canvas);
 
 
-        for (GameObject object: allObjects.getList()){
+        for (GameObject object : allObjects.getList()) {
             canvas.transformBody(object.getBody());
             object.draw(canvas, frame);
             if (DEBUG_MODE) {
@@ -286,16 +363,14 @@ public class GamePanel extends JPanel {
             }
         }
 
-        if (gameEND) {
-            canvas.drawImage(end, 250 + Camera.BG_W * 8, 20, 10, 2);
-        }
-
         canvas.kill();
 
 
-        //рисуем текст дебаг
-        g.setFont(new Font("Arial", Font.PLAIN, 16));
-        g.drawString(debug, 30, 30);
+        if (DEBUG_MODE) {
+            //рисуем текст дебаг
+            g.setFont(new Font("Arial", Font.PLAIN, 16));
+            g.drawString(debug, 30, 30);
+        }
     }
 
     public void setDebug(String debug) {

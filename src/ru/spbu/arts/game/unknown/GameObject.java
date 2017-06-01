@@ -9,6 +9,11 @@ public abstract class GameObject {
     protected Body body;
 
     protected boolean takeable = false;
+    protected AllWorldGameObjects allWorldGameObjects;
+
+    public void setAllWorldGameObjects(AllWorldGameObjects allWorldGameObjects) {
+        this.allWorldGameObjects = allWorldGameObjects;
+    }
 
     public abstract void draw(Canvas canvas, int frame);
 

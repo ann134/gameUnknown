@@ -10,7 +10,7 @@ public class GameFrame extends JFrame {
     HeroKeyListener heroKeyListener;
 
     public GameFrame() throws IOException {
-        super("My Frame");
+        super("Unknown");
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setSize((int)(Camera.SCREEN_W * Canvas.SCALE), (int)(Camera.SCREEN_H * Canvas.SCALE));

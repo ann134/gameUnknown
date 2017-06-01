@@ -53,14 +53,8 @@ public class HeroKeyListener implements KeyListener {
 
         //задуть фонарь
         if (key == 17 && hero.getCarried() && hero.getCarriedObject() instanceof Light) {
-            if (p.getLight().alive()){
-                /*p.getLight().setMovementStart(System.nanoTime());
-                p.getBranches().setMovementStart(System.nanoTime());*/
-                //p.getBeast().setMovementStart(System.nanoTime());
+            if (p.getLight().alive()) {
                 p.getLight().startDeath();
-                p.getLight().kill();
-                p.getBranches().startDeath();
-                p.getBeast().startDeath();
             }
         }
 
